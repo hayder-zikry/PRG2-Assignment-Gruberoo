@@ -1,2 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿//==========================================================
+// Student Number : S10272315B
+// Student Name : Hayder Zikry
+// Partner Name : Seah Hao Bin (S10273358K)
+//========================================================== 
