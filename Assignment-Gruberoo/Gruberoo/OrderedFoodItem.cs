@@ -6,7 +6,41 @@ using System.Threading.Tasks;
 
 namespace Gruberoo
 {
-    internal class OrderedFoodItem
+    internal class OrderedFoodItem : FoodItem
     {
+        // Attributes
+        private int qtyOrdered;
+        private double subTotal;
+
+        // Getters and Setters
+        public int QtyOrdered
+        {
+            get { return qtyOrdered; }
+            set { qtyOrdered = value; 
+                  subTotal = CalculateSubTotal();}
+        }
+        public double SubTotal
+        {
+            get { return subTotal; }
+        }
+
+        // Constructor
+        public OrderedFoodItem(FoodItem foodItem, int qtyOrdered) : base(foodItem.ItemName, foodItem.ItemDesc, foodItem.ItemPrice, foodItem.Customise)
+        {
+            this.qtyOrdered = qtyOrdered;
+            this.subTotal = CalculateSubTotal();
+        }
+
+        // Methods
+        public double CalculateSubTotal()
+        {
+            subTotal = ItemPrice * qtyOrdered;
+            return subTotal;
+        }
+
+        public override string ToString()
+        {
+            return $"{ItemName} x {qtyOrdered} = ${subTotal:F2}";
+        }
     }
 }
