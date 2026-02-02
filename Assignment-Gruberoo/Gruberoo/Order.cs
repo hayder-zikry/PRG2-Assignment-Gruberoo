@@ -79,6 +79,18 @@ namespace Gruberoo
             this.orderPaid = false;
             this.orderTotal = 0;
         }
+        public Order(int orderId, DateTime createdDateTime, DateTime deliveryDateTime, string deliveryAddress, double orderTotal, string orderStatus)
+        {
+            this.orderId = orderId;
+            this.orderDateTime = createdDateTime;
+            this.deliveryDateTime = deliveryDateTime;
+            this.deliveryAddress = deliveryAddress;
+            this.orderTotal = orderTotal;
+            this.orderStatus = orderStatus;
+            this.orderPaymentMethod = "";
+            this.orderPaid = false;
+        }
+
 
         // Methods
         public double CalculateOrderTotal()
