@@ -33,7 +33,7 @@ namespace Gruberoo
         }
 
         // Constructor
-        public SpecialOffer(string offerCode, string offerDesc, double discount)
+        public SpecialOffer(string offerCode, string offerDesc, double? discount)
         {
             this.offerCode = offerCode;
             this.offerDesc = offerDesc;
@@ -64,8 +64,8 @@ namespace Gruberoo
         // Methods
         public override string ToString()
         {
-            string discountDisplay = discount.HasValue ? $"{discount.Value:F2}%" : "-";
-            return $"{offerCode} - {offerDesc} (Discount: {discountDisplay}";
+            string discountDisplay = discount.HasValue ? $"{discount.Value:0.##}%" : "-";
+            return $"{offerCode} - {offerDesc} (Discount: {discountDisplay})";
         }
     }
 }
