@@ -37,14 +37,13 @@ namespace Gruberoo
         // Constructor
         public OrderedFoodItem(FoodItem foodItem, int qtyOrdered) : base(foodItem.ItemName, foodItem.ItemDesc, foodItem.ItemPrice, foodItem.Customise)
         {
-            this.qtyOrdered = qtyOrdered;
-            this.subTotal = CalculateSubTotal();
+            this.QtyOrdered = qtyOrdered;
         }
 
         // Methods
         public double CalculateSubTotal()
         {
-            subTotal = ItemPrice * qtyOrdered;
+            subTotal = ItemPrice * QtyOrdered;
             return subTotal;
         }
 
