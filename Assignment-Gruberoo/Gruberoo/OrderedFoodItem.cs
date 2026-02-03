@@ -16,8 +16,18 @@ namespace Gruberoo
         public int QtyOrdered
         {
             get { return qtyOrdered; }
-            set { qtyOrdered = value; 
-                  subTotal = CalculateSubTotal();}
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentException("Quantity ordered must be greater than zero.");
+                }
+                else
+                {
+                    qtyOrdered = value;
+                    subTotal = CalculateSubTotal();
+                }
+            }
         }
         public double SubTotal
         {
