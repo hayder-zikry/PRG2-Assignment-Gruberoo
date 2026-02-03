@@ -40,10 +40,36 @@ namespace Gruberoo
             this.discount = discount;
         }
 
+        public SpecialOffer(string offerCode, string offerDesc, string discountText)
+        {
+            this.offerCode = offerCode;
+            this.offerDesc = offerDesc;
+            
+            if (discountText.Trim() == "-")
+            {
+                discount = -1;
+            }
+            else
+            {
+                discount = Convert.ToDouble(discountText);
+            }
+        }
+
         // Methods
         public override string ToString()
         {
-            return $"{offerCode} - {offerDesc} | Discount: {discount:P0}";
+            string discountDisplay;
+
+            if (discount < 0)
+            {
+                discountDisplay = "-";
+            }
+            else
+            {
+                discountDisplay = $"{discount}%";
+            }
+
+            return $"{offerCode} - {offerDesc} (Discount: {discountDisplay})";
         }
     }
 }
