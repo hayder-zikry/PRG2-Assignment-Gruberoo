@@ -42,7 +42,7 @@ namespace Gruberoo
             this.itemName = itemName;
             this.itemDesc = itemDesc;
             this.itemPrice = itemPrice;
-            this.customise = "-";
+            this.customise = string.IsNullOrWhiteSpace(customise) ? "-" : customise;
         }
 
         // Methods
