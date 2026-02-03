@@ -14,8 +14,8 @@ namespace Gruberoo
         private string restaurantEmail;
 
         // Association
-        private Menu menu;
-        private List<Order> orders;
+        private List<Menu> menus;
+        private Queue<Order> orderQueue;
         private List<SpecialOffer> specialOffers;
 
         // Getters and Setters
@@ -37,15 +37,14 @@ namespace Gruberoo
             set { restaurantEmail = value; }
         }
 
-        public Menu Menu
+        public List<Menu> Menus
         {
-            get { return menu; }
-            set { menu = value; }
+            get { return menus; }
         }
 
-        public List<Order> Orders
+        public Queue<Order> OrderQueue
         {
-            get { return orders; }
+            get { return orderQueue; }
         }
 
         public List<SpecialOffer> SpecialOffers
@@ -60,53 +59,98 @@ namespace Gruberoo
             this.restaurantName = restaurantName;
             this.restaurantEmail = restaurantEmail;
 
-            orders = new List<Order>();
+            orderQueue = new Queue<Order>();
+            menus = new List<Menu>();
             specialOffers = new List<SpecialOffer>();
         }
 
         // Methods
         public void DisplayOrders()
         {
-            foreach (Order o in orders)
+            if (orderQueue.Count == 0)
             {
-                Console.WriteLine(o);
+                Console.WriteLine("No orders in the queue.");
+                return;
+            }
+
+            Console.WriteLine($"Orders Queue for {restaurantName} {restaurantId}");
+            Console.WriteLine("===================================");
+
+            int i = 1;
+            foreach (Order o in orderQueue)
+            {
+                Console.WriteLine($"Order {i}: {o}");
+                i++;
             }
         }
 
         public void DisplaySpecialOffers()
         {
-            foreach (SpecialOffer so in specialOffers)
+            if (specialOffers.Count == 0)
             {
-                Console.WriteLine(so);
+                Console.WriteLine("No special offers available.");
+                return;
+            }
+
+            Console.WriteLine($"Special Offers for {restaurantName} {restaurantId}");
+            Console.WriteLine("===================================");
+
+            int i = 1;
+            foreach (SpecialOffer offer in specialOffers)
+            {
+                Console.WriteLine(offer);
             }
         }
 
         public void DisplayMenu()
         {
-            if (menu != null)
+            if (menus.Count == 0)
             {
-                menu.DisplayFoodItems();
+                Console.WriteLine("No menus available.");
+                return;
+            }
+
+            Console.WriteLine($"Menus for {restaurantName} {restaurantId}");
+            Console.WriteLine("===================================");
+
+            foreach (Menu m in menus)
+            {
+                Console.WriteLine(m);
+                m.DisplayFoodItems();
+                Console.WriteLine();
             }
         }
 
         public void AddMenu(Menu menu)
         {
-            this.menu = menu;
+            if (menu == null)
+            {
+                return;
+            }
+
+            foreach (Menu m in menus)
+            {
+                if (m.MenuId == menu.MenuId)
+                {
+                    return;
+                }
+            }
+
+            menus.Add(menu);
         }
 
         public bool RemoveMenu(Menu menu)
         {
-            if (this.menu == menu)
+            if (menu == null)
             {
-                this.menu = null;
-                return true;
+                return false;
             }
-            return false;
+            return menus.Remove(menu);
         }
 
         public override string ToString()
         {
-            return $"{restaurantName} ({restaurantId}) | Email: {restaurantEmail}";
+            return $"{restaurantId} - {restaurantName} ({restaurantEmail})";
         }
     }
 }
