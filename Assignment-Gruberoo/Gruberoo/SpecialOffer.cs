@@ -11,7 +11,7 @@ namespace Gruberoo
         // Attributes
         private string offerCode;
         private string offerDesc;
-        private double discount;
+        private double? discount;   // Nullable to handle "-" case
 
         // Getters and Setters
         public string OfferCode
@@ -26,7 +26,7 @@ namespace Gruberoo
             set { offerDesc = value; }
         }
 
-        public double Discount
+        public double? Discount
         {
             get { return discount; }
             set { discount = value; }
@@ -44,32 +44,28 @@ namespace Gruberoo
         {
             this.offerCode = offerCode;
             this.offerDesc = offerDesc;
-            
-            if (discountText.Trim() == "-")
+
+            string text = discountText?.Trim();
+
+            if (string.IsNullOrEmpty(text) || text == "-")
             {
-                discount = -1;
+                discount = null;
+            }
+            else if (double.TryParse(text, out double parsedDiscount))
+            {
+                discount = parsedDiscount;
             }
             else
             {
-                discount = Convert.ToDouble(discountText);
+                discount = null;
             }
         }
 
         // Methods
         public override string ToString()
         {
-            string discountDisplay;
-
-            if (discount < 0)
-            {
-                discountDisplay = "-";
-            }
-            else
-            {
-                discountDisplay = $"{discount}%";
-            }
-
-            return $"{offerCode} - {offerDesc} (Discount: {discountDisplay})";
+            string discountDisplay = discount.HasValue ? $"{discount.Value:F2}%" : "-";
+            return $"{offerCode} - {offerDesc} (Discount: {discountDisplay}";
         }
     }
 }
