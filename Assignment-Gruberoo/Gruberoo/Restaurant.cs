@@ -95,7 +95,6 @@ namespace Gruberoo
             Console.WriteLine($"Special Offers for {restaurantName} {restaurantId}");
             Console.WriteLine("===================================");
 
-            int i = 1;
             foreach (SpecialOffer offer in specialOffers)
             {
                 Console.WriteLine(offer);
