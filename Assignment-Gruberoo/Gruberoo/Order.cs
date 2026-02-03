@@ -22,6 +22,13 @@ namespace Gruberoo
         private List<OrderedFoodItem> orderedFoodItems = new List<OrderedFoodItem>();
         private SpecialOffer? specialOffer;
 
+        // Status Constants
+        public const string STATUS_PENDING = "Pending";
+        public const string STATUS_PREPARING = "Preparing";
+        public const string STATUS_DELIVERED = "Delivered";
+        public const string STATUS_CANCELLED = "Cancelled";
+        public const string STATUS_REJECTED = "Rejected";
+
         // Getters and Setters
         public int OrderId
         {
@@ -74,7 +81,7 @@ namespace Gruberoo
             this.orderDateTime = DateTime.Now;
             this.deliveryDateTime = deliveryDateTime;
             this.deliveryAddress = deliveryAddress;
-            this.orderStatus = "Pending";
+            this.orderStatus = STATUS_PENDING;
             this.orderPaymentMethod = "";
             this.orderPaid = false;
             this.orderTotal = 0;
@@ -102,13 +109,12 @@ namespace Gruberoo
                 total += ofi.CalculateSubTotal();
             }
 
-            // WHEN SpecialOffer class IS IMPLEMENTED
-            //if (specialOffer != null && specialOffer.Discount > 0)
-            //{
-            //    total = total * (1 - (specialOffer.Discount / 100.0));
-            //}
+            if (specialOffer != null && specialOffer.Discount.HasValue && specialOffer.Discount.Value > 0)
+            {
+                total = total * (1 - (specialOffer.Discount.Value / 100.0));
+            }
 
-            orderTotal = total;
+            orderTotal = Math.Round(total, 2);
             return orderTotal;
         }
         public void AddOrderedFoodItem(OrderedFoodItem orderedFoodItem)
