@@ -9,7 +9,6 @@ namespace Gruberoo
     internal class Customer
     {
         // Attributes
-        private string customerId;
         private string customerName;
         private string customerEmail;
 
@@ -17,12 +16,6 @@ namespace Gruberoo
         private List<Order> orders;
 
         // Getters and Setters
-        public string CustomerId
-        {
-            get { return customerId; }
-            set { customerId = value; }
-        }
-
         public string CustomerName
         {
             get { return customerName; }
@@ -41,9 +34,8 @@ namespace Gruberoo
         }
 
         // Constructor
-        public Customer(string customerId, string customerName, string customerEmail)
+        public Customer(string customerName, string customerEmail)
         {
-            this.customerId = customerId;
             this.customerName = customerName;
             this.customerEmail = customerEmail;
 
@@ -64,7 +56,7 @@ namespace Gruberoo
             return orders.Remove(order);
         }
 
-        public void DisplayOrders()
+        public void DisplayAllOrders()
         {
             foreach (Order o in orders)
             {
@@ -74,7 +66,7 @@ namespace Gruberoo
 
         public override string ToString()
         {
-            return $"{customerName} ({customerId}) | Email: {customerEmail}";
+            return $"{customerName} | Email: {customerEmail}";
         }
     }
 }
