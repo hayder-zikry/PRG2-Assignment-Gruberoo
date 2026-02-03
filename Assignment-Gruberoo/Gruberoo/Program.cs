@@ -9,10 +9,18 @@ namespace Gruberoo
     {
         static Dictionary<string, Customer> customersByEmail = new Dictionary<string, Customer>();
         static List<Order> allOrders = new List<Order>();
+        
+        static Dictionary<string, Restaurant> restaurantsById = new Dictionary<string, Restaurant>();
+        static int foodItemsLoaded = 0;
 
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
+
+            LoadRestaurantsAndFoodItems();
+            Console.WriteLine($"{restaurantsById.Count} restaurants loaded!");
+
+            Console.WriteLine($"{foodItemsLoaded} food items loaded!");
 
             LoadCustomers();
             Console.WriteLine($"{customersByEmail.Count} customers loaded!");
@@ -111,6 +119,85 @@ namespace Gruberoo
 
         // Student 2: Seah Hao Bin
         // Features: 1, 4, 6, 8
+        static void LoadRestaurantsAndFoodItems()
+        {
+            // Feature 1 : Load files (restaurants and food items)
+
+            restaurantsById.Clear();
+            foodItemsLoaded = 0;
+
+            string rPath = "data/restaurants.csv";
+            if (!File.Exists(rPath))
+            {
+                Console.WriteLine("Restaurants file not found.");
+                return;
+            }
+
+            string[] rLines = File.ReadAllLines(rPath);
+
+            for (int i = 1; i < rLines.Length; i++) // skip header
+            {
+                if (string.IsNullOrWhiteSpace(rLines[i]))
+                    continue;
+
+                string[] parts = rLines[i].Split(',');
+                if (parts.Length < 3)
+                    continue;
+
+                string rid = parts[0].Trim();
+                string name = parts[1].Trim();
+                string email = parts[2].Trim();
+
+                Restaurant r = new Restaurant(rid, name, email);
+
+                // Restaurant has 1 Menu (from your diagram). Create a default menu.
+                Menu m = new Menu(rid + "-M1", "Main Menu");
+                r.AddMenu(m);
+
+                restaurantsById[rid] = r;
+            }
+
+            string fPath = "data/fooditems.csv";
+            if (!File.Exists(fPath))
+            {
+                Console.WriteLine("Food items file not found.");
+                return;
+            }
+
+            string[] fLines = File.ReadAllLines(fPath);
+
+            for (int i = 1; i < fLines.Length; i++) // skip header
+            {
+                if (string.IsNullOrWhiteSpace(fLines[i]))
+                    continue;
+
+                string[] parts = fLines[i].Split(',');
+                if (parts.Length < 4)
+                    continue;
+
+                string rid = parts[0].Trim();
+                string itemName = parts[1].Trim();
+                string itemDesc = parts[2].Trim();
+
+                double price;
+                if (!double.TryParse(parts[3].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out price))
+                    continue;
+
+                if (restaurantsById.ContainsKey(rid))
+                {
+                    FoodItem fi = new FoodItem(itemName, itemDesc, price, "-");
+
+                    // Restaurant has exactly 1 menu
+                    restaurantsById[rid].Menus[0].AddFoodItem(fi);
+
+                    foodItemsLoaded++;
+                }
+            }
+        }
+
+
+
+
     }
 }
 
