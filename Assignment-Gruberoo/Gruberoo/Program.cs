@@ -150,7 +150,7 @@ namespace Gruberoo
 
                 Restaurant r = new Restaurant(rid, name, email);
 
-                // Restaurant has 1 Menu (from your diagram). Create a default menu.
+                
                 Menu m = new Menu(rid + "-M1", "Main Menu");
                 r.AddMenu(m);
 
@@ -187,7 +187,7 @@ namespace Gruberoo
                 {
                     FoodItem fi = new FoodItem(itemName, itemDesc, price, "-");
 
-                    // Restaurant has exactly 1 menu
+                    
                     restaurantsById[rid].Menus[0].AddFoodItem(fi);
 
                     foodItemsLoaded++;
