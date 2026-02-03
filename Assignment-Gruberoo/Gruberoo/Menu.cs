@@ -57,6 +57,11 @@ namespace Gruberoo
 
         public void DisplayFoodItems()
         {
+            if (foodItems.Count == 0)
+            {
+                Console.WriteLine("No food items available in this menu.");
+                return;
+            }
             foreach (FoodItem fi in foodItems)
             {
                 Console.WriteLine(fi);
