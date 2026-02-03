@@ -22,7 +22,7 @@ namespace Gruberoo
             set { customerName = value; }
         }
 
-        public string CustomerEmail
+        public string EmailAddress
         {
             get { return emailAddress; }
             set { emailAddress = value; }
