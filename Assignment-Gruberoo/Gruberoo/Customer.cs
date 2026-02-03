@@ -10,7 +10,7 @@ namespace Gruberoo
     {
         // Attributes
         private string customerName;
-        private string customerEmail;
+        private string emailAddress;
 
         // Association
         private List<Order> orders;
@@ -24,8 +24,8 @@ namespace Gruberoo
 
         public string CustomerEmail
         {
-            get { return customerEmail; }
-            set { customerEmail = value; }
+            get { return emailAddress; }
+            set { emailAddress = value; }
         }
 
         public List<Order> Orders
@@ -34,10 +34,10 @@ namespace Gruberoo
         }
 
         // Constructor
-        public Customer(string customerName, string customerEmail)
+        public Customer(string customerName, string emailAddress)
         {
             this.customerName = customerName;
-            this.customerEmail = customerEmail;
+            this.emailAddress = emailAddress;
 
             orders = new List<Order>();
         }
@@ -66,7 +66,7 @@ namespace Gruberoo
 
         public override string ToString()
         {
-            return $"{customerName} | Email: {customerEmail}";
+            return $"{customerName} | Email: {emailAddress}";
         }
     }
 }
