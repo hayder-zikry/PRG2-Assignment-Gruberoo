@@ -37,17 +37,17 @@ namespace Gruberoo
             set { restaurantEmail = value; }
         }
 
-        public IReadOnlyList<Menu> Menus
+        public List<Menu> Menus
         {
             get { return menus; }
         }
 
-        public IReadOnlyCollection<Order> OrderQueue
+        public Queue<Order> OrderQueue
         {
             get { return orderQueue; }
         }
 
-        public IReadOnlyList<SpecialOffer> SpecialOffers
+        public List<SpecialOffer> SpecialOffers
         {
             get { return specialOffers; }
         }

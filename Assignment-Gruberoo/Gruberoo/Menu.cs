@@ -28,7 +28,7 @@ namespace Gruberoo
             set { menuName = value; }
         }
 
-        public IReadOnlyList<FoodItem> FoodItems
+        public List<FoodItem> FoodItems
         {
             get { return foodItems; }
         }

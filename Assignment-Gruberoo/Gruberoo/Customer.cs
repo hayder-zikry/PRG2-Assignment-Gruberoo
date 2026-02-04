@@ -28,7 +28,7 @@ namespace Gruberoo
             set { emailAddress = value; }
         }
 
-        public IReadOnlyList<Order> Orders
+        public List<Order> Orders
         {
             get { return orders; }
         }
