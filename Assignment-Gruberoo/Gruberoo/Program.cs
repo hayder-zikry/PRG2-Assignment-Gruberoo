@@ -3,12 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
 
-//==========================================================
-// Student Number : S10273358K
-// Student Name : Michael Jordan
-// Partner Name : Scottie Pippen
-//==========================================================
-
 namespace Gruberoo
 {
     internal class Program
