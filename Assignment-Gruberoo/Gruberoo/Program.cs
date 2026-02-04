@@ -19,7 +19,6 @@ namespace Gruberoo
 
             LoadRestaurantsAndFoodItems();
             Console.WriteLine($"{restaurantsById.Count} restaurants loaded!");
-
             Console.WriteLine($"{foodItemsLoaded} food items loaded!");
 
             LoadCustomers();
@@ -194,10 +193,6 @@ namespace Gruberoo
                 }
             }
         }
-
-
-
-
     }
 }
 
