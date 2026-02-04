@@ -214,9 +214,7 @@ namespace Gruberoo
     }
 }
 
-// Feature 1 : Load files (restaurants and food items)
-//
-
+// TODO: Basic Features To Be Implemented
 
 // Feature 3 : List all restaurants and menu items
 // Hayder Zikry S10272315B
