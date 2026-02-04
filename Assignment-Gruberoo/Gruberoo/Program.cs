@@ -3,6 +3,12 @@ using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
 
+//==========================================================
+// Student Number : S10273358K
+// Student Name : Michael Jordan
+// Partner Name : Scottie Pippen
+//==========================================================
+
 namespace Gruberoo
 {
     internal class Program
@@ -122,7 +128,7 @@ namespace Gruberoo
 
         }
 
-        // Student 2: Seah Hao Bin
+        // Student 2: Seah Hao Bin S10273358K
         // Features: 1, 4, 6, 8
         static void LoadRestaurantsAndFoodItems()
         {
@@ -221,7 +227,7 @@ namespace Gruberoo
 
 
 // Feature 4 : List all orders with basic information
-//
+// Seah Hao Bin S10273358K
 
 
 // Feature 5 : Create a new order
@@ -229,7 +235,7 @@ namespace Gruberoo
 
 
 // Feature 6 : Process an order
-// 
+// Seah Hao Bin S10273358K
 
 
 // Feature 7 : Modify an existing order
@@ -237,4 +243,4 @@ namespace Gruberoo
 
 
 // Feature 8 : Delete an existing order
-//
+// Seah Hao Bin S10273358K
