@@ -95,6 +95,7 @@ namespace Gruberoo
                 // Parts
                 int orderId = int.Parse(parts[0].Trim());
                 string customerEmail = parts[1].Trim();
+                string restaurantId = parts[2].Trim();
                 string deliveryDate = parts[3].Trim();
                 string deliveryTime = parts[4].Trim();
                 string deliveryAddress = parts[5].Trim();
@@ -111,6 +112,11 @@ namespace Gruberoo
                 if (customersByEmail.ContainsKey(customerEmail))
                 {
                     customersByEmail[customerEmail].AddOrder(order);
+                }
+
+                if (restaurantsById.ContainsKey(restaurantId))
+                {
+                    restaurantsById[restaurantId].OrderQueue.Enqueue(order);
                 }
             }
 
