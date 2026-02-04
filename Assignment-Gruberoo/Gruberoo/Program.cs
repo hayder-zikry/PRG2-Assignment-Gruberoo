@@ -176,10 +176,22 @@ namespace Gruberoo
 
                 string rid = parts[0].Trim();
                 string itemName = parts[1].Trim();
-                string itemDesc = parts[2].Trim();
+
+                string priceText = parts[parts.Length - 1].Trim();
+
+                string itemDesc = "";
+                for (int j = 2; j < parts.Length - 1; j++)
+                {
+                    if (j > 2)
+                    {
+                        itemDesc += ",";
+                    }
+                    itemDesc += parts[j];
+                }
+                itemDesc = itemDesc.Trim();
 
                 double price;
-                if (!double.TryParse(parts[3].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out price))
+                if (!double.TryParse(priceText, NumberStyles.Any, CultureInfo.InvariantCulture, out price))
                     continue;
 
                 if (restaurantsById.ContainsKey(rid))
