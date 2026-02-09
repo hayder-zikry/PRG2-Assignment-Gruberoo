@@ -114,6 +114,9 @@ namespace Gruberoo
                 total = total * (1 - (specialOffer.Discount.Value / 100.0));
             }
 
+            const double DELIVERY_FEE = 5.00;
+            total += DELIVERY_FEE;
+
             orderTotal = Math.Round(total, 2);
             return orderTotal;
         }
