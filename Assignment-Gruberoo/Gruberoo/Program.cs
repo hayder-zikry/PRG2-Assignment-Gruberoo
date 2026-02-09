@@ -119,8 +119,6 @@ namespace Gruberoo
                 allOrders.Add(order);
 
                 orderCustomerEmail[orderId] = customerEmail;
-                orderRestaurantId[orderId] = restaurantId;
-                restaurantsById[restaurantId].AddToOrderQueue(order);
 
                 if (customersByEmail.ContainsKey(customerEmail))
                 {
@@ -129,10 +127,46 @@ namespace Gruberoo
 
                 if (restaurantsById.ContainsKey(restaurantId))
                 {
-                    restaurantsById[restaurantId].OrderQueue.Enqueue(order);
+                    orderRestaurantId[orderId] = restaurantId;
+                    restaurantsById[restaurantId].AddToOrderQueue(order);
+                }
+                else
+                {
+                    orderRestaurantId[orderId] = restaurantId;
                 }
             }
+        }
 
+        static void ListAllRestaurantsAndMenuItems()
+        {
+            // Feature 3 : List all restaurants and menu items
+
+            Console.WriteLine("All Restaurants and Menu Items");
+            Console.WriteLine("==============================");
+            int i = 1;
+
+            foreach (Restaurant r in restaurantsById.Values)
+            {
+                if (i > 1)
+                {
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine($"Restaurant: {r.RestaurantName} ({r.RestaurantId})");
+
+                if (r.Menus.Count == 0)
+                {
+                    continue;
+                }
+
+                Menu menu = r.Menus[0];
+
+                foreach (FoodItem fi in menu.FoodItems)
+                {
+                    Console.WriteLine($"    - {fi.ItemName}: {fi.ItemDesc} - ${fi.ItemPrice:0.00}");
+                }
+                i++;
+            }
         }
 
         // Student 2: Seah Hao Bin S10273358K
@@ -401,10 +435,6 @@ namespace Gruberoo
 }
 
 // TODO: Basic Features To Be Implemented
-
-// Feature 3 : List all restaurants and menu items
-// Hayder Zikry S10272315B
-
 
 // Feature 5 : Create a new order
 // Hayder Zikry S10272315B
