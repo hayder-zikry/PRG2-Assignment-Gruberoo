@@ -16,6 +16,8 @@ namespace Gruberoo
         static Dictionary<int, string> orderCustomerEmail = new Dictionary<int, string>();
         static Dictionary<int, string> orderRestaurantId = new Dictionary<int, string>();
 
+        static Stack<Order> refundStack = new Stack<Order>();
+
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
@@ -30,7 +32,6 @@ namespace Gruberoo
             LoadOrders();
             Console.WriteLine($"{allOrders.Count} orders loaded!");
 
-            ListAllOrdersBasicInfo();
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
@@ -229,8 +230,6 @@ namespace Gruberoo
 
         static void ListAllOrdersBasicInfo()
         {
-            // Feature 4 : List all orders with basic information
-            // Seah Hao Bin S10273358K
 
             if (allOrders.Count == 0)
             {
@@ -277,6 +276,127 @@ namespace Gruberoo
                     o.OrderStatus);
             }
         }
+
+        // Feature 6 : Process an order
+        // Seah Hao Bin S10273358K
+
+        static void ProcessOrder()
+        {
+      
+            Console.WriteLine();
+            Console.WriteLine("Process Order");
+            Console.WriteLine("=============");
+
+            Console.Write("Enter Restaurant ID: ");
+            string rid = Console.ReadLine().Trim();
+
+            if (!restaurantsById.ContainsKey(rid))
+            {
+                Console.WriteLine("Invalid Restaurant ID.");
+                return;
+            }
+
+            Restaurant r = restaurantsById[rid];
+
+            if (r.OrderQueue.Count == 0)
+            {
+                Console.WriteLine("No orders to process.");
+                return;
+            }
+
+            // Loop through the queue once (avoid infinite loop if we re-enqueue)
+            int count = r.OrderQueue.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                Order o = r.OrderQueue.Dequeue();
+
+                // Customer name (using your mapping)
+                string custName = "Unknown";
+                if (orderCustomerEmail.ContainsKey(o.OrderId))
+                {
+                    string email = orderCustomerEmail[o.OrderId];
+                    if (customersByEmail.ContainsKey(email))
+                        custName = customersByEmail[email].CustomerName;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine($"Order {o.OrderId}:");
+                Console.WriteLine($"Customer: {custName}");
+                Console.WriteLine("Ordered Items:");
+                o.DisplayOrderedFoodItems();
+                Console.WriteLine($"Delivery date/time: {o.DeliveryDateTime:dd/MM/yyyy HH:mm}");
+                Console.WriteLine($"Total Amount: ${o.OrderTotal:0.00}");
+                Console.WriteLine($"Order Status: {o.OrderStatus}");
+                Console.WriteLine();
+
+                Console.Write("[C]onfirm / [R]eject / [S]kip / [D]eliver: ");
+                string action = Console.ReadLine().Trim().ToUpper();
+
+                if (action == "C")
+                {
+                    if (o.OrderStatus == Order.STATUS_PENDING)
+                    {
+                        o.OrderStatus = Order.STATUS_PREPARING;
+                        Console.WriteLine($"Order {o.OrderId} confirmed. Status: {o.OrderStatus}");
+                        r.OrderQueue.Enqueue(o); // still active
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cannot confirm. Order status is {o.OrderStatus}.");
+                        r.OrderQueue.Enqueue(o); // keep order
+                    }
+                }
+                else if (action == "R")
+                {
+                    if (o.OrderStatus == Order.STATUS_PENDING)
+                    {
+                        o.OrderStatus = Order.STATUS_REJECTED;
+                        refundStack.Push(o);
+                        Console.WriteLine($"Order {o.OrderId} rejected. Status: {o.OrderStatus}");
+                        Console.WriteLine($"Refund required for Order {o.OrderId}.");
+                        // rejected = archived (do not enqueue back)
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cannot reject. Order status is {o.OrderStatus}.");
+                        r.OrderQueue.Enqueue(o);
+                    }
+                }
+                else if (action == "S")
+                {
+                    if (o.OrderStatus == Order.STATUS_CANCELLED)
+                    {
+                        Console.WriteLine($"Order {o.OrderId} skipped (Cancelled).");
+                        // cancelled = move on (do not enqueue back)
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cannot skip. Order status is {o.OrderStatus} (must be Cancelled).");
+                        r.OrderQueue.Enqueue(o);
+                    }
+                }
+                else if (action == "D")
+                {
+                    if (o.OrderStatus == Order.STATUS_PREPARING)
+                    {
+                        o.OrderStatus = Order.STATUS_DELIVERED;
+                        Console.WriteLine($"Order {o.OrderId} delivered. Status: {o.OrderStatus}");
+                        // delivered = archived (do not enqueue back)
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cannot deliver. Order status is {o.OrderStatus} (must be Preparing).");
+                        r.OrderQueue.Enqueue(o);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Order not processed.");
+                    r.OrderQueue.Enqueue(o);
+                }
+            }
+        }
     }
 }
 
@@ -288,10 +408,6 @@ namespace Gruberoo
 
 // Feature 5 : Create a new order
 // Hayder Zikry S10272315B
-
-
-// Feature 6 : Process an order
-// Seah Hao Bin S10273358K
 
 
 // Feature 7 : Modify an existing order
