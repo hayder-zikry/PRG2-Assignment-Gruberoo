@@ -67,6 +67,10 @@ namespace Gruberoo
             get { return orderPaid; }
             set { orderPaid = value; }
         }
+        public List<OrderedFoodItem> OrderedFoodItems
+        {
+            get { return orderedFoodItems; }
+        }
         public SpecialOffer? SpecialOffer
         {
             get { return specialOffer; }
