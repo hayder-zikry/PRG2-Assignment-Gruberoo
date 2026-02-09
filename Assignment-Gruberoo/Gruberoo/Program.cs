@@ -13,6 +13,9 @@ namespace Gruberoo
         static Dictionary<string, Restaurant> restaurantsById = new Dictionary<string, Restaurant>();
         static int foodItemsLoaded = 0;
 
+        static Dictionary<int, string> orderCustomerEmail = new Dictionary<int, string>();
+        static Dictionary<int, string> orderRestaurantId = new Dictionary<int, string>();
+
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
@@ -26,6 +29,10 @@ namespace Gruberoo
             
             LoadOrders();
             Console.WriteLine($"{allOrders.Count} orders loaded!");
+
+            ListAllOrdersBasicInfo();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
 
         // Student 1: Hayder Zikry S10272315B
@@ -109,6 +116,11 @@ namespace Gruberoo
                 Order order = new Order(orderId, createdDateTimeObj, deliveryDateTimeObj, deliveryAddress, totalAmount, status);
 
                 allOrders.Add(order);
+
+                orderCustomerEmail[orderId] = customerEmail;
+                orderRestaurantId[orderId] = restaurantId;
+                restaurantsById[restaurantId].AddToOrderQueue(order);
+
                 if (customersByEmail.ContainsKey(customerEmail))
                 {
                     customersByEmail[customerEmail].AddOrder(order);
@@ -211,6 +223,60 @@ namespace Gruberoo
                 }
             }
         }
+
+        // Feature 4 : List all orders with basic information
+        // Seah Hao Bin S10273358K
+
+        static void ListAllOrdersBasicInfo()
+        {
+            // Feature 4 : List all orders with basic information
+            // Seah Hao Bin S10273358K
+
+            if (allOrders.Count == 0)
+            {
+                Console.WriteLine("No orders found.");
+                return;
+            }
+
+            Console.WriteLine("All Orders");
+            Console.WriteLine("==========");
+
+            Console.WriteLine("{0,-11}{1,-15}{2,-17}{3,-21}{4,-11}{5,-12}",
+                "Order ID", "Customer", "Restaurant", "Delivery Date/Time", "Amount", "Status");
+            Console.WriteLine("{0,-11}{1,-15}{2,-17}{3,-21}{4,-11}{5,-12}",
+                "--------", "----------", "-------------", "------------------", "------", "---------");
+
+            foreach (Order o in allOrders)
+            {
+                string custName = "Unknown";
+                if (orderCustomerEmail.ContainsKey(o.OrderId))
+                {
+                    string email = orderCustomerEmail[o.OrderId];
+                    if (customersByEmail.ContainsKey(email))
+                    {
+                        custName = customersByEmail[email].CustomerName;
+                    }
+                }
+
+                string restName = "Unknown";
+                if (orderRestaurantId.ContainsKey(o.OrderId))
+                {
+                    string rid = orderRestaurantId[o.OrderId];
+                    if (restaurantsById.ContainsKey(rid))
+                    {
+                        restName = restaurantsById[rid].RestaurantName;
+                    }
+                }
+
+                Console.WriteLine("{0,-10} {1,-14} {2,-16} {3,-20} ${4,-9} {5}",
+                    o.OrderId,
+                    custName,
+                    restName,
+                    o.DeliveryDateTime.ToString("dd/MM/yyyy HH:mm"),
+                    o.OrderTotal.ToString("0.00"),
+                    o.OrderStatus);
+            }
+        }
     }
 }
 
@@ -218,10 +284,6 @@ namespace Gruberoo
 
 // Feature 3 : List all restaurants and menu items
 // Hayder Zikry S10272315B
-
-
-// Feature 4 : List all orders with basic information
-// Seah Hao Bin S10273358K
 
 
 // Feature 5 : Create a new order
