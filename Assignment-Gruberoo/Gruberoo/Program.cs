@@ -426,6 +426,105 @@ namespace Gruberoo
                 }
             }
         }
+
+        // Feature 8 : Delete an existing order
+        // Seah Hao Bin S10273358K
+
+        static void DeleteOrder()
+        {
+
+            Console.WriteLine();
+            Console.WriteLine("Delete Order");
+            Console.WriteLine("============");
+
+            Console.Write("Enter Customer Email: ");
+            string email = Console.ReadLine().Trim();
+
+            if (!customersByEmail.ContainsKey(email))
+            {
+                Console.WriteLine("Invalid customer email.");
+                return;
+            }
+
+            // Collect pending orders for this customer
+            List<Order> pendingOrders = new List<Order>();
+
+            foreach (Order o in allOrders)
+            {
+                if (orderCustomerEmail.ContainsKey(o.OrderId) &&
+                    orderCustomerEmail[o.OrderId] == email &&
+                    o.OrderStatus == Order.STATUS_PENDING)
+                {
+                    pendingOrders.Add(o);
+                }
+            }
+
+            Console.WriteLine("Pending Orders:");
+            if (pendingOrders.Count == 0)
+            {
+                Console.WriteLine("(none)");
+                return;
+            }
+
+            foreach (Order o in pendingOrders)
+            {
+                Console.WriteLine(o.OrderId);
+            }
+
+            Console.Write("Enter Order ID: ");
+            string input = Console.ReadLine().Trim();
+
+            int orderId;
+            if (!int.TryParse(input, out orderId))
+            {
+                Console.WriteLine("Invalid Order ID.");
+                return;
+            }
+
+            // Find the selected pending order
+            Order selected = null;
+            foreach (Order o in pendingOrders)
+            {
+                if (o.OrderId == orderId)
+                {
+                    selected = o;
+                    break;
+                }
+            }
+
+            if (selected == null)
+            {
+                Console.WriteLine("Order ID not found in pending orders.");
+                return;
+            }
+
+            // Display basic order information (like sample)
+            string custName = customersByEmail[email].CustomerName;
+
+            Console.WriteLine();
+            Console.WriteLine($"Customer: {custName}");
+            Console.WriteLine("Ordered Items:");
+            selected.DisplayOrderedFoodItems();
+            Console.WriteLine($"Delivery date/time: {selected.DeliveryDateTime:dd/MM/yyyy HH:mm}");
+            Console.WriteLine($"Total Amount: ${selected.OrderTotal:0.00}");
+            Console.WriteLine($"Order Status: {selected.OrderStatus}");
+
+            Console.Write("Confirm deletion? [Y/N]: ");
+            string ans = Console.ReadLine().Trim().ToUpper();
+
+            if (ans != "Y")
+            {
+                Console.WriteLine("Deletion cancelled.");
+                return;
+            }
+
+            // Update status + refund stack + message
+            selected.OrderStatus = Order.STATUS_CANCELLED;
+            refundStack.Push(selected);
+
+            Console.WriteLine();
+            Console.WriteLine($"Order {selected.OrderId} cancelled. Refund of ${selected.OrderTotal:0.00} processed.");
+        }
     }
 }
 
@@ -438,6 +537,3 @@ namespace Gruberoo
 // Feature 7 : Modify an existing order
 // Hayder Zikry S10272315B
 
-
-// Feature 8 : Delete an existing order
-// Seah Hao Bin S10273358K
