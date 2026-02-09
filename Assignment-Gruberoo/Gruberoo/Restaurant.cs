@@ -84,6 +84,11 @@ namespace Gruberoo
             }
         }
 
+        public void AddToOrderQueue(Order order)
+        {
+            if (order != null) orderQueue.Enqueue(order);
+        }
+
         public void DisplaySpecialOffers()
         {
             if (specialOffers.Count == 0)
