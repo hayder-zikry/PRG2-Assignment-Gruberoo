@@ -125,15 +125,13 @@ namespace Gruberoo
                     customersByEmail[customerEmail].AddOrder(order);
                 }
 
+                orderRestaurantId[orderId] = restaurantId;
+
                 if (restaurantsById.ContainsKey(restaurantId))
                 {
-                    orderRestaurantId[orderId] = restaurantId;
-                    restaurantsById[restaurantId].AddToOrderQueue(order);
+                    restaurantsById[restaurantId].OrderQueue.Enqueue(order);
                 }
-                else
-                {
-                    orderRestaurantId[orderId] = restaurantId;
-                }
+
             }
         }
 
