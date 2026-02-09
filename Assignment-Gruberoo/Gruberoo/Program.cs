@@ -32,8 +32,7 @@ namespace Gruberoo
             LoadOrders();
             Console.WriteLine($"{allOrders.Count} orders loaded!");
 
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            ListAllRestaurantsAndMenuItems();
         }
 
         // Student 1: Hayder Zikry S10272315B
@@ -139,6 +138,7 @@ namespace Gruberoo
         {
             // Feature 3 : List all restaurants and menu items
 
+            Console.WriteLine();
             Console.WriteLine("All Restaurants and Menu Items");
             Console.WriteLine("==============================");
             int i = 1;
@@ -152,20 +152,17 @@ namespace Gruberoo
 
                 Console.WriteLine($"Restaurant: {r.RestaurantName} ({r.RestaurantId})");
 
-                if (r.Menus.Count == 0)
+                foreach (Menu m in r.Menus)
                 {
-                    continue;
-                }
-
-                Menu menu = r.Menus[0];
-
-                foreach (FoodItem fi in menu.FoodItems)
-                {
-                    Console.WriteLine($"    - {fi.ItemName}: {fi.ItemDesc} - ${fi.ItemPrice:0.00}");
+                    foreach (FoodItem fi in m.FoodItems)
+                    {
+                        Console.WriteLine($"    - {fi.ItemName}: {fi.ItemDesc} - ${fi.ItemPrice:0.00}");
+                    }
                 }
                 i++;
             }
         }
+
 
         // Student 2: Seah Hao Bin S10273358K
         // Features: 1, 4, 6, 8
