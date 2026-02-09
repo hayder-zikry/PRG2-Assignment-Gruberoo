@@ -31,8 +31,6 @@ namespace Gruberoo
             
             LoadOrders();
             Console.WriteLine($"{allOrders.Count} orders loaded!");
-
-            ListAllRestaurantsAndMenuItems();
         }
 
         // Student 1: Hayder Zikry S10272315B
@@ -162,6 +160,238 @@ namespace Gruberoo
                 i++;
             }
         }
+
+
+        static void CreateNewOrder()
+        {
+            // Feature 5 : Create a new order
+
+            Console.WriteLine();
+            Console.WriteLine("Create New Order");
+            Console.WriteLine("================");
+
+            // 1) Customer Email
+            Console.Write("Enter Customer Email: ");
+            string customerEmail = Console.ReadLine().Trim();
+
+            if (!customersByEmail.ContainsKey(customerEmail))
+            {
+                Console.WriteLine("Invalid Customer Email.");
+                return;
+            }
+
+            // 2) Restaurant ID
+            Console.Write("Enter Restaurant ID: ");
+            string restaurantId = Console.ReadLine().Trim();
+
+            if (!restaurantsById.ContainsKey(restaurantId))
+            {
+                Console.WriteLine("Invalid Restaurant ID.");
+                return;
+            }
+
+            // 3) Delivery Date
+            Console.Write("Enter Delivery Date (dd/mm/yyyy): ");
+            string deliveryDateText = Console.ReadLine().Trim();
+
+            DateTime deliveryDate;
+            if (!DateTime.TryParseExact(deliveryDateText, "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                                        DateTimeStyles.None, out deliveryDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            // 4) Delivery Time
+            Console.Write("Enter Delivery Time (hh:mm): ");
+            string deliveryTimeText = Console.ReadLine().Trim();
+
+            DateTime deliveryTime;
+            if (!DateTime.TryParseExact(deliveryTimeText, "HH:mm", CultureInfo.InvariantCulture,
+                                        DateTimeStyles.None, out deliveryTime))
+            {
+                Console.WriteLine("Invalid time format.");
+                return;
+            }
+
+            DateTime deliveryDateTime = new DateTime(
+                deliveryDate.Year, deliveryDate.Month, deliveryDate.Day,
+                deliveryTime.Hour, deliveryTime.Minute, 0
+            );
+
+            // 5) Address
+            Console.Write("Enter Delivery Address: ");
+            string deliveryAddress = Console.ReadLine();
+
+            // 6) New Order ID = max + 1
+            int maxId = 0;
+            foreach (Order o in allOrders)
+            {
+                if (o.OrderId > maxId) maxId = o.OrderId;
+            }
+            int newOrderId = maxId + 1;
+
+            // Create order (status must be Pending)
+            Order newOrder = new Order(newOrderId, deliveryDateTime, deliveryAddress);
+            newOrder.OrderStatus = Order.STATUS_PENDING;
+
+            // 7) Show list of available items for selected restaurant
+            Restaurant r = restaurantsById[restaurantId];
+
+            List<FoodItem> availableItems = new List<FoodItem>();
+            foreach (Menu m in r.Menus)
+            {
+                foreach (FoodItem fi in m.FoodItems)
+                {
+                    availableItems.Add(fi);
+                }
+            }
+
+            if (availableItems.Count == 0)
+            {
+                Console.WriteLine("No food items available for this restaurant.");
+                return;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Available Food Items:");
+            for (int i = 0; i < availableItems.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {availableItems[i].ItemName} - ${availableItems[i].ItemPrice:0.00}");
+            }
+
+            // Track ordered items so items column can be made for CSV
+            List<OrderedFoodItem> selectedOrderedItems = new List<OrderedFoodItem>();
+
+            while (true)
+            {
+                Console.Write("Enter item number (0 to finish): ");
+                string itemNoText = Console.ReadLine().Trim();
+
+                int itemNo;
+                if (!int.TryParse(itemNoText, out itemNo))
+                {
+                    Console.WriteLine("Please enter a valid number.");
+                    continue;
+                }
+
+                if (itemNo == 0) break;
+
+                if (itemNo < 1 || itemNo > availableItems.Count)
+                {
+                    Console.WriteLine("Invalid item number.");
+                    continue;
+                }
+
+                Console.Write("Enter quantity: ");
+                string qtyText = Console.ReadLine().Trim();
+
+                int qty;
+                if (!int.TryParse(qtyText, out qty) || qty <= 0)
+                {
+                    Console.WriteLine("Invalid quantity.");
+                    continue;
+                }
+
+                FoodItem chosen = availableItems[itemNo - 1];
+                OrderedFoodItem ofi = new OrderedFoodItem(chosen, qty);
+
+                newOrder.AddOrderedFoodItem(ofi);
+                selectedOrderedItems.Add(ofi);
+            }
+
+            if (selectedOrderedItems.Count == 0)
+            {
+                Console.WriteLine("No items selected. Order not created.");
+                return;
+            }
+
+            // 8) Special request
+            Console.Write("Add special request? [Y/N]: ");
+            string sr = Console.ReadLine().Trim().ToUpper();
+
+            if (sr == "Y")
+            {
+                Console.Write("Enter special request: ");
+                string request = Console.ReadLine();
+
+                foreach (OrderedFoodItem ofi in selectedOrderedItems)
+                {
+                    ofi.Customise = request;
+                }
+            }
+
+            // 9) Calculate total
+            double finalTotal = newOrder.CalculateOrderTotal();
+
+            // For display, show items total and delivery
+            const double DELIVERY_FEE = 5.00;
+            double itemsTotal = Math.Round(finalTotal - DELIVERY_FEE, 2);
+            Console.WriteLine();
+            Console.WriteLine($"Order Total: ${itemsTotal:0.00} + ${DELIVERY_FEE:0.00} (delivery) = ${finalTotal:0.00}");
+
+            // 10) Payment
+            Console.Write("Proceed to payment? [Y/N]: ");
+            string pay = Console.ReadLine().Trim().ToUpper();
+
+            if (pay != "Y")
+            {
+                return; // exit feature
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Payment method:");
+            Console.Write("[CC] Credit Card / [PP] PayPal / [CD] Cash on Delivery: ");
+            string method = Console.ReadLine().Trim().ToUpper();
+
+            if (method != "CC" && method != "PP" && method != "CD")
+            {
+                Console.WriteLine("Invalid payment method.");
+                return;
+            }
+
+            newOrder.OrderPaymentMethod = method;
+            newOrder.OrderPaid = true;
+            newOrder.OrderStatus = Order.STATUS_PENDING;
+
+            // 11) Add to in-memory structures
+            allOrders.Add(newOrder);
+            customersByEmail[customerEmail].AddOrder(newOrder);
+            restaurantsById[restaurantId].OrderQueue.Enqueue(newOrder);
+
+            orderCustomerEmail[newOrderId] = customerEmail;
+            orderRestaurantId[newOrderId] = restaurantId;
+
+            // 12) Make Items text for CSV
+            // E.g. "Chicken Rice, 2|Beef Burger, 1"
+            string itemsText = "";
+            for (int i = 0; i < selectedOrderedItems.Count; i++)
+            {
+                OrderedFoodItem ofi = selectedOrderedItems[i];
+                if (i > 0) itemsText += "|";
+                itemsText += $"{ofi.ItemName}, {ofi.QtyOrdered}";
+            }
+            itemsText = "\"" + itemsText + "\"";
+
+            // 13) Append to orders.csv
+            string path = "data/orders.csv";
+            string deliveryDateOut = deliveryDateTime.ToString("dd/MM/yyyy");
+            string deliveryTimeOut = deliveryDateTime.ToString("HH:mm");
+            string createdOut = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            string totalOut = finalTotal.ToString("0.00", CultureInfo.InvariantCulture);
+
+            string line = $"{newOrderId},{customerEmail},{restaurantId},{deliveryDateOut},{deliveryTimeOut},{deliveryAddress},{createdOut},{totalOut},{newOrder.OrderStatus},{itemsText}";
+
+            using (StreamWriter sw = new StreamWriter(path, true))
+            {
+                sw.WriteLine(line);
+            }
+
+            // 14) Confirmation
+            Console.WriteLine();
+            Console.WriteLine($"Order {newOrderId} created successfully! Status: {newOrder.OrderStatus}");
+        }
+
 
 
         // Student 2: Seah Hao Bin S10273358K
@@ -529,10 +759,6 @@ namespace Gruberoo
 }
 
 // TODO: Basic Features To Be Implemented
-
-// Feature 5 : Create a new order
-// Hayder Zikry S10272315B
-
 
 // Feature 7 : Modify an existing order
 // Hayder Zikry S10272315B
