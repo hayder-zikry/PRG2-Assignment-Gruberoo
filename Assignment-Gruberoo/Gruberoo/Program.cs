@@ -262,9 +262,15 @@ namespace Gruberoo
 
                 if (restaurantsById.ContainsKey(restaurantId))
                 {
-                    restaurantsById[restaurantId].OrderQueue.Enqueue(order);
-                }
+                    string statusClean = order.OrderStatus.Trim();
 
+                    if (statusClean == Order.STATUS_PENDING ||
+                        statusClean == Order.STATUS_CANCELLED ||
+                        statusClean == Order.STATUS_PREPARING)
+                    {
+                        restaurantsById[restaurantId].OrderQueue.Enqueue(order);
+                    }
+                }
             }
         }
 
@@ -848,19 +854,24 @@ namespace Gruberoo
             Console.WriteLine($"Total Amount: ${selected.OrderTotal:0.00}");
         }
 
-
-
-
-
         // Student 2: Seah Hao Bin S10273358K
         // Features: 1, 4, 6, 8
+
+        // === Feature Methods ===
+        // Feature 1: LoadRestaurantsAndFoodItems()
+        // Feature 4: ListAllOrdersBasicInfo()
+        // Feature 6: ProcessOrder()
+        // Feature 8: DeleteOrder()
+
         static void LoadRestaurantsAndFoodItems()
         {
             // Feature 1 : Load files (restaurants and food items)
+            // Seah Hao Bin S10273358K
 
             restaurantsById.Clear();
             foodItemsLoaded = 0;
 
+            // Load restaurants.csv and create Restaurant objects
             string rPath = "data/restaurants.csv";
             if (!File.Exists(rPath))
             {
@@ -872,26 +883,24 @@ namespace Gruberoo
 
             for (int i = 1; i < rLines.Length; i++) // skip header
             {
-                if (string.IsNullOrWhiteSpace(rLines[i]))
-                    continue;
+                if (string.IsNullOrWhiteSpace(rLines[i])) continue;
 
                 string[] parts = rLines[i].Split(',');
-                if (parts.Length < 3)
-                    continue;
+                if (parts.Length < 3) continue;
 
                 string rid = parts[0].Trim();
                 string name = parts[1].Trim();
                 string email = parts[2].Trim();
 
+                // Each restaurant starts with one default menu
                 Restaurant r = new Restaurant(rid, name, email);
-
-                
                 Menu m = new Menu(rid + "-M1", "Main Menu");
                 r.AddMenu(m);
 
                 restaurantsById[rid] = r;
             }
 
+            // Load fooditems.csv and add each FoodItem into the restaurant's menu
             string fPath = "data/fooditems.csv";
             if (!File.Exists(fPath))
             {
@@ -903,25 +912,21 @@ namespace Gruberoo
 
             for (int i = 1; i < fLines.Length; i++) // skip header
             {
-                if (string.IsNullOrWhiteSpace(fLines[i]))
-                    continue;
+                if (string.IsNullOrWhiteSpace(fLines[i])) continue;
 
                 string[] parts = fLines[i].Split(',');
-                if (parts.Length < 4)
-                    continue;
+                if (parts.Length < 4) continue;
 
                 string rid = parts[0].Trim();
                 string itemName = parts[1].Trim();
 
+                // Last column = price, middle columns = description (may contain commas)
                 string priceText = parts[parts.Length - 1].Trim();
 
                 string itemDesc = "";
                 for (int j = 2; j < parts.Length - 1; j++)
                 {
-                    if (j > 2)
-                    {
-                        itemDesc += ",";
-                    }
+                    if (j > 2) itemDesc += ",";
                     itemDesc += parts[j];
                 }
                 itemDesc = itemDesc.Trim();
@@ -930,23 +935,20 @@ namespace Gruberoo
                 if (!double.TryParse(priceText, NumberStyles.Any, CultureInfo.InvariantCulture, out price))
                     continue;
 
+                // Add item into the first menu created earlier
                 if (restaurantsById.ContainsKey(rid))
                 {
                     FoodItem fi = new FoodItem(itemName, itemDesc, price, "-");
-
-                    
                     restaurantsById[rid].Menus[0].AddFoodItem(fi);
-
                     foodItemsLoaded++;
                 }
             }
         }
 
-        // Feature 4 : List all orders with basic information
-        // Seah Hao Bin S10273358K
-
         static void ListAllOrdersBasicInfo()
         {
+            // Feature 4 : List all orders with basic information
+            // Seah Hao Bin S10273358K
 
             if (allOrders.Count == 0)
             {
@@ -954,6 +956,7 @@ namespace Gruberoo
                 return;
             }
 
+            // Table header (basic fields)
             Console.WriteLine("All Orders");
             Console.WriteLine("==========");
 
@@ -964,24 +967,22 @@ namespace Gruberoo
 
             foreach (Order o in allOrders)
             {
+                // Map order -> customer name
                 string custName = "Unknown";
                 if (orderCustomerEmail.ContainsKey(o.OrderId))
                 {
                     string email = orderCustomerEmail[o.OrderId];
                     if (customersByEmail.ContainsKey(email))
-                    {
                         custName = customersByEmail[email].CustomerName;
-                    }
                 }
 
+                // Map order -> restaurant name
                 string restName = "Unknown";
                 if (orderRestaurantId.ContainsKey(o.OrderId))
                 {
                     string rid = orderRestaurantId[o.OrderId];
                     if (restaurantsById.ContainsKey(rid))
-                    {
                         restName = restaurantsById[rid].RestaurantName;
-                    }
                 }
 
                 Console.WriteLine("{0,-10} {1,-14} {2,-16} {3,-20} ${4,-9} {5}",
@@ -994,12 +995,11 @@ namespace Gruberoo
             }
         }
 
-        // Feature 6 : Process an order
-        // Seah Hao Bin S10273358K
-
         static void ProcessOrder()
         {
-      
+            // Feature 6 : Process an order
+            // Seah Hao Bin S10273358K
+
             Console.WriteLine();
             Console.WriteLine("Process Order");
             Console.WriteLine("=============");
@@ -1021,14 +1021,16 @@ namespace Gruberoo
                 return;
             }
 
-            // Loop through the queue once (avoid infinite loop if we re-enqueue)
+            // Loop through the queue once (avoid infinite loop if re-enqueue)
             int count = r.OrderQueue.Count;
 
             for (int i = 0; i < count; i++)
             {
                 Order o = r.OrderQueue.Dequeue();
 
-                // Customer name (using your mapping)
+                string statusClean = o.OrderStatus.Trim();
+
+                // Customer name (using mapping)
                 string custName = "Unknown";
                 if (orderCustomerEmail.ContainsKey(o.OrderId))
                 {
@@ -1055,11 +1057,13 @@ namespace Gruberoo
                     if (o.OrderStatus == Order.STATUS_PENDING)
                     {
                         o.OrderStatus = Order.STATUS_PREPARING;
+                        Console.WriteLine();
                         Console.WriteLine($"Order {o.OrderId} confirmed. Status: {o.OrderStatus}");
                         r.OrderQueue.Enqueue(o); // still active
                     }
                     else
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Cannot confirm. Order status is {o.OrderStatus}.");
                         r.OrderQueue.Enqueue(o); // keep order
                     }
@@ -1070,12 +1074,14 @@ namespace Gruberoo
                     {
                         o.OrderStatus = Order.STATUS_REJECTED;
                         refundStack.Push(o);
+                        Console.WriteLine();
                         Console.WriteLine($"Order {o.OrderId} rejected. Status: {o.OrderStatus}");
                         Console.WriteLine($"Refund required for Order {o.OrderId}.");
                         // rejected = archived (do not enqueue back)
                     }
                     else
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Cannot reject. Order status is {o.OrderStatus}.");
                         r.OrderQueue.Enqueue(o);
                     }
@@ -1084,11 +1090,13 @@ namespace Gruberoo
                 {
                     if (o.OrderStatus == Order.STATUS_CANCELLED)
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Order {o.OrderId} skipped (Cancelled).");
                         // cancelled = move on (do not enqueue back)
                     }
                     else
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Cannot skip. Order status is {o.OrderStatus} (must be Cancelled).");
                         r.OrderQueue.Enqueue(o);
                     }
@@ -1098,28 +1106,30 @@ namespace Gruberoo
                     if (o.OrderStatus == Order.STATUS_PREPARING)
                     {
                         o.OrderStatus = Order.STATUS_DELIVERED;
+                        Console.WriteLine();
                         Console.WriteLine($"Order {o.OrderId} delivered. Status: {o.OrderStatus}");
                         // delivered = archived (do not enqueue back)
                     }
                     else
                     {
+                        Console.WriteLine();
                         Console.WriteLine($"Cannot deliver. Order status is {o.OrderStatus} (must be Preparing).");
                         r.OrderQueue.Enqueue(o);
                     }
                 }
                 else
                 {
+                    Console.WriteLine();
                     Console.WriteLine("Invalid input. Order not processed.");
                     r.OrderQueue.Enqueue(o);
                 }
             }
         }
 
-        // Feature 8 : Delete an existing order
-        // Seah Hao Bin S10273358K
-
         static void DeleteOrder()
         {
+            // Feature 8 : Delete an existing order
+            // Seah Hao Bin S10273358K
 
             Console.WriteLine();
             Console.WriteLine("Delete Order");
