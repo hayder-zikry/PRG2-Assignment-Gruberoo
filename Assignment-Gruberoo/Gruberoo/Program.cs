@@ -49,6 +49,7 @@ namespace Gruberoo
                 Console.WriteLine("4. Process an order");
                 Console.WriteLine("5. Modify an existing order");
                 Console.WriteLine("6. Delete an existing order");
+                Console.WriteLine("7. Bulk process pending orders for a current day");
                 Console.WriteLine("0. Exit");
                 Console.Write("Enter your choice: ");
 
@@ -89,6 +90,10 @@ namespace Gruberoo
                 {
                     DeleteOrder();                      // Feature 8
                 }
+                else if (option == 7)
+                {
+                    BulkProcessPendingOrdersForDay();   // Advanced Feature A
+                }
                 else
                 {
                     Console.WriteLine("Invalid option. Please choose from the menu.");
@@ -106,6 +111,7 @@ namespace Gruberoo
         // Feature 3: ListAllRestaurantsAndMenuItems()
         // Feature 5: CreateNewOrder()
         // Feature 7: ModifyOrder()
+        // Advanced Feature (A): BulkProcessPendingOrdersForDay()
         static void LoadCustomers()
         {
             // Feature 2 : Load files (customers and orders)
@@ -780,7 +786,7 @@ namespace Gruberoo
                     Console.WriteLine($"{i + 1}. {availableItems[i].ItemName} - ${availableItems[i].ItemPrice:0.00}");
                 }
 
-                // Clear existing items in BOTH places
+                // Clear existing items in both places
                 selected.OrderedFoodItems.Clear();
 
                 while (true)
@@ -853,6 +859,118 @@ namespace Gruberoo
             Console.WriteLine(selected.DeliveryDateTime.ToString("dd/MM/yyyy, HH:mm"));
             Console.WriteLine($"Total Amount: ${selected.OrderTotal:0.00}");
         }
+
+        static void BulkProcessPendingOrdersForDay()
+        {
+            // Advanced Feature (A) : Bulk processing of unprocessed orders for a current day
+            // Hayder Zikry S10272315B
+
+            Console.WriteLine();
+            Console.WriteLine("Bulk Processing - Pending Orders (Chosen Day)");
+            Console.WriteLine("=============================================");
+
+            // Ask for date
+            DateTime targetDate;
+            while (true)
+            {
+                Console.Write("Enter date to bulk process (dd/MM/yyyy) (0 to cancel): ");
+                string dateText = (Console.ReadLine() ?? "").Trim();
+
+                if (dateText == "0") return;
+
+                if (!DateTime.TryParseExact(dateText, "dd/MM/yyyy",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out targetDate))
+                {
+                    Console.WriteLine("Invalid date format. Try again.");
+                    continue;
+                }
+                break;
+            }
+
+            int totalPendingInQueues = 0;
+
+            // Count pending orders in queues for that day
+            foreach (Restaurant r in restaurantsById.Values)
+            {
+                foreach (Order o in r.OrderQueue)
+                {
+                    if (o.OrderStatus == Order.STATUS_PENDING && o.DeliveryDateTime.Date == targetDate.Date)
+                    {
+                        totalPendingInQueues++;
+                    }
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"Total Pending orders in queues for {targetDate:dd/MM/yyyy}: {totalPendingInQueues}");
+
+            if (totalPendingInQueues == 0)
+            {
+                Console.WriteLine("No pending orders to bulk process for this day.");
+                return;
+            }
+
+            int processedCount = 0;
+            int preparingCount = 0;
+            int rejectedCount = 0;
+
+            DateTime now = DateTime.Now;
+
+            foreach (Restaurant r in restaurantsById.Values)
+            {
+                int qCount = r.OrderQueue.Count;
+
+                for (int i = 0; i < qCount; i++)
+                {
+                    Order o = r.OrderQueue.Dequeue();
+
+                    bool isPendingTargetDay =
+                        (o.OrderStatus == Order.STATUS_PENDING) &&
+                        (o.DeliveryDateTime.Date == targetDate.Date);
+
+                    if (isPendingTargetDay)
+                    {
+                        processedCount++;
+
+                        double minsToDelivery = (o.DeliveryDateTime - now).TotalMinutes;
+
+                        if (minsToDelivery < 60)
+                        {
+                            o.OrderStatus = Order.STATUS_REJECTED;
+                            rejectedCount++;
+
+                            refundStack.Push(o);
+                        }
+                        else
+                        {
+                            o.OrderStatus = Order.STATUS_PREPARING;
+                            preparingCount++;
+
+                            // keep active orders in queue
+                            r.OrderQueue.Enqueue(o);
+                        }
+                    }
+                    else
+                    {
+                        r.OrderQueue.Enqueue(o);
+                    }
+                }
+            }
+
+            // Percentage automatically processed against all orders
+            double percentage = 0;
+            if (allOrders.Count > 0)
+                percentage = (processedCount * 100.0) / allOrders.Count;
+
+            Console.WriteLine();
+            Console.WriteLine("Summary Statistics");
+            Console.WriteLine("------------------");
+            Console.WriteLine($"Number of orders processed: {processedCount}");
+            Console.WriteLine($"Preparing: {preparingCount}");
+            Console.WriteLine($"Rejected: {rejectedCount}");
+            Console.WriteLine($"Percentage auto-processed vs all orders: {percentage:0.00}%");
+        }
+
 
         // Student 2: Seah Hao Bin S10273358K
         // Features: 1, 4, 6, 8
