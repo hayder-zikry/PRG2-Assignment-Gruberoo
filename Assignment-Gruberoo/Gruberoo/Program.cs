@@ -42,21 +42,19 @@ namespace Gruberoo
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("Main Menu");
-                Console.WriteLine("=========");
-                Console.WriteLine("[1] List all restaurants and menu items");
-                Console.WriteLine("[2] List all orders (basic information)");
-                Console.WriteLine("[3] Create a new order");
-                Console.WriteLine("[4] Modify an existing order");
-                Console.WriteLine("[5] Process an order (restaurant)");
-                Console.WriteLine("[6] Cancel/Delete an existing order");
-                Console.WriteLine("[0] Exit");
-                Console.Write("Enter your option: ");
+                Console.WriteLine("===== Gruberoo Food Delivery System =====");
+                Console.WriteLine("1. List all restaurants and menu items");
+                Console.WriteLine("2. List all orders");
+                Console.WriteLine("3. Create a new order");
+                Console.WriteLine("4. Process an order");
+                Console.WriteLine("5. Modify an existing order");
+                Console.WriteLine("6. Delete an existing order");
+                Console.WriteLine("0. Exit");
+                Console.Write("Enter your choice: ");
 
                 string input = Console.ReadLine().Trim();
 
-                int option;
-                if (!int.TryParse(input, out option))
+                if (!int.TryParse(input, out int option))
                 {
                     Console.WriteLine("Invalid option. Please enter a number.");
                     continue;
@@ -67,46 +65,51 @@ namespace Gruberoo
                     Console.WriteLine("Goodbye!");
                     break;
                 }
-
-                switch (option)
+                else if (option == 1)
                 {
-                    case 1:
-                        ListAllRestaurantsAndMenuItems();   // Feature 3
-                        break;
-
-                    case 2:
-                        ListAllOrdersBasicInfo();           // Feature 4
-                        break;
-
-                    case 3:
-                        CreateNewOrder();                   // Feature 5
-                        break;
-
-                    case 4:
-                        ModifyOrder();                      // Feature 7
-                        break;
-
-                    case 5:
-                        ProcessOrder();                     // Feature 6
-                        break;
-
-                    case 6:
-                        DeleteOrder();                      // Feature 8
-                        break;
-
-                    default:
-                        Console.WriteLine("Invalid option. Please choose from the menu.");
-                        break;
+                    ListAllRestaurantsAndMenuItems();   // Feature 3
+                }
+                else if (option == 2)
+                {
+                    ListAllOrdersBasicInfo();           // Feature 4
+                }
+                else if (option == 3)
+                {
+                    CreateNewOrder();                   // Feature 5
+                }
+                else if (option == 4)
+                {
+                    ProcessOrder();                     // Feature 6
+                }
+                else if (option == 5)
+                {
+                    ModifyOrder();                      // Feature 7
+                }
+                else if (option == 6)
+                {
+                    DeleteOrder();                      // Feature 8
+                }
+                else
+                {
+                    Console.WriteLine("Invalid option. Please choose from the menu.");
                 }
             }
         }
 
 
+
         // Student 1: Hayder Zikry S10272315B
         // Features: 2, 3, 5, 7
+
+        // === Feature Methods ===
+        // Feature 2: LoadCustomers(), LoadOrders()
+        // Feature 3: ListAllRestaurantsAndMenuItems()
+        // Feature 5: CreateNewOrder()
+        // Feature 7: ModifyOrder()
         static void LoadCustomers()
         {
             // Feature 2 : Load files (customers and orders)
+            // Hayder Zikry S10272315B
 
             string path = "data/customers.csv";
             if (!File.Exists(path))
@@ -142,6 +145,7 @@ namespace Gruberoo
         static void LoadOrders()
         {
             // Feature 2 : Load files (customers and orders)
+            // Hayder Zikry S10272315B
 
             string path = "data/orders.csv";
             if (!File.Exists(path))
@@ -166,8 +170,6 @@ namespace Gruberoo
                     continue;
                 }
 
-                // If there are extra commas because Items column is quoted,
-                // re-join everything from index 9 onwards as the items text
                 string itemsText = "";
 
                 // Parts
@@ -269,6 +271,7 @@ namespace Gruberoo
         static void ListAllRestaurantsAndMenuItems()
         {
             // Feature 3 : List all restaurants and menu items
+            // Hayder Zikry S10272315B
 
             Console.WriteLine();
             Console.WriteLine("All Restaurants and Menu Items");
@@ -298,6 +301,7 @@ namespace Gruberoo
         static void CreateNewOrder()
         {
             // Feature 5 : Create a new order
+            // Hayder Zikry S10272315B
 
             Console.WriteLine();
             Console.WriteLine("Create New Order");
@@ -528,6 +532,7 @@ namespace Gruberoo
         static void ModifyOrder()
         {
             // Feature 7 : Modify an existing order
+            // Hayder Zikry S10272315B
 
             Console.WriteLine();
             Console.WriteLine("Modify Order");
