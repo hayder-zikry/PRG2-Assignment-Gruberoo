@@ -144,19 +144,19 @@ namespace Gruberoo
         }
         public void DisplayOrderedFoodItems()
         {
-            if (orderedFoodItems.Count == 0)
+            if (OrderedFoodItems == null || OrderedFoodItems.Count == 0)
             {
-                Console.WriteLine("No ordered food items.");
+                Console.WriteLine("(none)");
                 return;
             }
 
-            int i = 1;
-            foreach (OrderedFoodItem ofi in orderedFoodItems)
+            for (int i = 0; i < OrderedFoodItems.Count; i++)
             {
-                Console.WriteLine($"{i}. {ofi}");
-                i++;
+                OrderedFoodItem ofi = OrderedFoodItems[i];
+                Console.WriteLine($"{i + 1}. {ofi.ItemName} - {ofi.QtyOrdered}");
             }
         }
+
         public override string ToString()
         {
             return $"Order {orderId} | Delivery: {deliveryDateTime:dd/MM/yyyy HH:mm} | Total: ${orderTotal:F2} | Status: {orderStatus}";

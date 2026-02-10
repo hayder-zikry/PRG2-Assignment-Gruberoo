@@ -52,7 +52,7 @@ namespace Gruberoo
                 Console.WriteLine("0. Exit");
                 Console.Write("Enter your choice: ");
 
-                string input = Console.ReadLine().Trim();
+                string input = (Console.ReadLine() ?? "").Trim();
 
                 if (!int.TryParse(input, out int option))
                 {
@@ -307,48 +307,74 @@ namespace Gruberoo
             Console.WriteLine("Create New Order");
             Console.WriteLine("================");
 
-            // 1) Customer Email
-            Console.Write("Enter Customer Email: ");
-            string customerEmail = Console.ReadLine().Trim();
-
-            if (!customersByEmail.ContainsKey(customerEmail))
+            // Customer Email
+            string customerEmail;
+            while (true)
             {
-                Console.WriteLine("Invalid Customer Email.");
-                return;
+                Console.Write("Enter Customer Email (0 to cancel): ");
+                customerEmail = Console.ReadLine().Trim();
+
+                if (customerEmail == "0") return;
+
+                if (!customersByEmail.ContainsKey(customerEmail))
+                {
+                    Console.WriteLine("Invalid Customer Email. Try again.");
+                    continue;
+                }
+                break;
             }
 
-            // 2) Restaurant ID
-            Console.Write("Enter Restaurant ID: ");
-            string restaurantId = Console.ReadLine().Trim();
-
-            if (!restaurantsById.ContainsKey(restaurantId))
+            // Restaurant ID
+            string restaurantId;
+            while (true)
             {
-                Console.WriteLine("Invalid Restaurant ID.");
-                return;
+                Console.Write("Enter Restaurant ID (0 to cancel): ");
+                restaurantId = Console.ReadLine().Trim();
+
+                if (restaurantId == "0") return;
+
+                if (!restaurantsById.ContainsKey(restaurantId))
+                {
+                    Console.WriteLine("Invalid Restaurant ID. Try again.");
+                    continue;
+                }
+                break;
             }
 
-            // 3) Delivery Date
-            Console.Write("Enter Delivery Date (dd/mm/yyyy): ");
-            string deliveryDateText = Console.ReadLine().Trim();
-
+            // Delivery Date
             DateTime deliveryDate;
-            if (!DateTime.TryParseExact(deliveryDateText, "dd/MM/yyyy", CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out deliveryDate))
+            while (true)
             {
-                Console.WriteLine("Invalid date format.");
-                return;
+                Console.Write("Enter Delivery Date (dd/mm/yyyy) (0 to cancel): ");
+                string deliveryDateText = Console.ReadLine().Trim();
+
+                if (deliveryDateText == "0") return;
+
+                if (!DateTime.TryParseExact(deliveryDateText, "dd/MM/yyyy",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out deliveryDate))
+                {
+                    Console.WriteLine("Invalid date format. Try again.");
+                    continue;
+                }
+                break;
             }
 
-            // 4) Delivery Time
-            Console.Write("Enter Delivery Time (hh:mm): ");
-            string deliveryTimeText = Console.ReadLine().Trim();
-
+            // Delivery Time
             DateTime deliveryTime;
-            if (!DateTime.TryParseExact(deliveryTimeText, "HH:mm", CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out deliveryTime))
+            while (true)
             {
-                Console.WriteLine("Invalid time format.");
-                return;
+                Console.Write("Enter Delivery Time (hh:mm) (0 to cancel): ");
+                string deliveryTimeText = Console.ReadLine().Trim();
+
+                if (deliveryTimeText == "0") return;
+
+                if (!DateTime.TryParseExact(deliveryTimeText, "HH:mm",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out deliveryTime))
+                {
+                    Console.WriteLine("Invalid time format. Try again.");
+                    continue;
+                }
+                break;
             }
 
             DateTime deliveryDateTime = new DateTime(
@@ -356,33 +382,40 @@ namespace Gruberoo
                 deliveryTime.Hour, deliveryTime.Minute, 0
             );
 
-            // 5) Address
-            Console.Write("Enter Delivery Address: ");
-            string deliveryAddress = Console.ReadLine();
+            // Address
+            string deliveryAddress;
+            while (true)
+            {
+                Console.Write("Enter Delivery Address (0 to cancel): ");
+                deliveryAddress = Console.ReadLine();
 
-            // 6) New Order ID = max + 1
+                if (deliveryAddress.Trim() == "0") return;
+
+                if (string.IsNullOrWhiteSpace(deliveryAddress))
+                {
+                    Console.WriteLine("Address cannot be empty. Try again.");
+                    continue;
+                }
+                break;
+            }
+
+            // New Order ID (max + 1)
             int maxId = 0;
             foreach (Order o in allOrders)
-            {
                 if (o.OrderId > maxId) maxId = o.OrderId;
-            }
+
             int newOrderId = maxId + 1;
 
-            // Create order (status must be Pending)
+            // Create order
             Order newOrder = new Order(newOrderId, deliveryDateTime, deliveryAddress);
             newOrder.OrderStatus = Order.STATUS_PENDING;
 
-            // 7) Show list of available items for selected restaurant
+            // Menu items
             Restaurant r = restaurantsById[restaurantId];
-
             List<FoodItem> availableItems = new List<FoodItem>();
             foreach (Menu m in r.Menus)
-            {
                 foreach (FoodItem fi in m.FoodItems)
-                {
                     availableItems.Add(fi);
-                }
-            }
 
             if (availableItems.Count == 0)
             {
@@ -393,16 +426,13 @@ namespace Gruberoo
             Console.WriteLine();
             Console.WriteLine("Available Food Items:");
             for (int i = 0; i < availableItems.Count; i++)
-            {
                 Console.WriteLine($"{i + 1}. {availableItems[i].ItemName} - ${availableItems[i].ItemPrice:0.00}");
-            }
 
-            // Track ordered items so items column can be made for CSV
             List<OrderedFoodItem> selectedOrderedItems = new List<OrderedFoodItem>();
 
             while (true)
             {
-                Console.Write("Enter item number (0 to finish): ");
+                Console.Write("Enter item number (0 to finish, -1 to restart): ");
                 string itemNoText = Console.ReadLine().Trim();
 
                 int itemNo;
@@ -414,20 +444,33 @@ namespace Gruberoo
 
                 if (itemNo == 0) break;
 
+                if (itemNo == -1)
+                {
+                    // restart item selection
+                    selectedOrderedItems.Clear();
+                    newOrder.OrderedFoodItems.Clear();
+                    Console.WriteLine("Item selection restarted.");
+                    continue;
+                }
+
                 if (itemNo < 1 || itemNo > availableItems.Count)
                 {
                     Console.WriteLine("Invalid item number.");
                     continue;
                 }
 
-                Console.Write("Enter quantity: ");
-                string qtyText = Console.ReadLine().Trim();
-
                 int qty;
-                if (!int.TryParse(qtyText, out qty) || qty <= 0)
+                while (true)
                 {
-                    Console.WriteLine("Invalid quantity.");
-                    continue;
+                    Console.Write("Enter quantity: ");
+                    string qtyText = Console.ReadLine().Trim();
+
+                    if (!int.TryParse(qtyText, out qty) || qty <= 0)
+                    {
+                        Console.WriteLine("Invalid quantity. Try again.");
+                        continue;
+                    }
+                    break;
                 }
 
                 FoodItem chosen = availableItems[itemNo - 1];
@@ -435,6 +478,8 @@ namespace Gruberoo
 
                 newOrder.AddOrderedFoodItem(ofi);
                 selectedOrderedItems.Add(ofi);
+
+                Console.WriteLine($"Added: {ofi.ItemName} - {ofi.QtyOrdered}");
             }
 
             if (selectedOrderedItems.Count == 0)
@@ -443,55 +488,74 @@ namespace Gruberoo
                 return;
             }
 
-            // 8) Special request
-            Console.Write("Add special request? [Y/N]: ");
-            string sr = Console.ReadLine().Trim().ToUpper();
-
-            if (sr == "Y")
+            // Special request
+            while (true)
             {
+                Console.Write("Add special request? [Y/N]: ");
+                string sr = Console.ReadLine().Trim().ToUpper();
+
+                if (sr == "N") break;
+                if (sr != "Y")
+                {
+                    Console.WriteLine("Invalid input. Enter Y or N.");
+                    continue;
+                }
+
                 Console.Write("Enter special request: ");
                 string request = Console.ReadLine();
 
                 foreach (OrderedFoodItem ofi in selectedOrderedItems)
-                {
                     ofi.Customise = request;
-                }
+
+                break;
             }
 
-            // 9) Calculate total
+            // Calculate total
             double finalTotal = newOrder.CalculateOrderTotal();
-
-            // For display, show items total and delivery
             const double DELIVERY_FEE = 5.00;
             double itemsTotal = Math.Round(finalTotal - DELIVERY_FEE, 2);
+
             Console.WriteLine();
+            Console.WriteLine("Your Order Summary:");
+            newOrder.DisplayOrderedFoodItems();
             Console.WriteLine($"Order Total: ${itemsTotal:0.00} + ${DELIVERY_FEE:0.00} (delivery) = ${finalTotal:0.00}");
 
-            // 10) Payment
-            Console.Write("Proceed to payment? [Y/N]: ");
-            string pay = Console.ReadLine().Trim().ToUpper();
-
-            if (pay != "Y")
+            // Payment
+            while (true)
             {
-                return; // exit feature
+                Console.Write("Proceed to payment? [Y/N]: ");
+                string pay = Console.ReadLine().Trim().ToUpper();
+
+                if (pay == "N") return;
+                if (pay != "Y")
+                {
+                    Console.WriteLine("Invalid input. Enter Y or N.");
+                    continue;
+                }
+                break;
             }
 
-            Console.WriteLine();
-            Console.WriteLine("Payment method:");
-            Console.Write("[CC] Credit Card / [PP] PayPal / [CD] Cash on Delivery: ");
-            string method = Console.ReadLine().Trim().ToUpper();
-
-            if (method != "CC" && method != "PP" && method != "CD")
+            string method;
+            while (true)
             {
-                Console.WriteLine("Invalid payment method.");
-                return;
+                Console.WriteLine();
+                Console.WriteLine("Payment method:");
+                Console.Write("[CC] Credit Card / [PP] PayPal / [CD] Cash on Delivery: ");
+                method = Console.ReadLine().Trim().ToUpper();
+
+                if (method != "CC" && method != "PP" && method != "CD")
+                {
+                    Console.WriteLine("Invalid payment method. Try again.");
+                    continue;
+                }
+                break;
             }
 
             newOrder.OrderPaymentMethod = method;
             newOrder.OrderPaid = true;
             newOrder.OrderStatus = Order.STATUS_PENDING;
 
-            // 11) Add to in-memory structures
+            // Add to collections
             allOrders.Add(newOrder);
             customersByEmail[customerEmail].AddOrder(newOrder);
             restaurantsById[restaurantId].OrderQueue.Enqueue(newOrder);
@@ -499,8 +563,7 @@ namespace Gruberoo
             orderCustomerEmail[newOrderId] = customerEmail;
             orderRestaurantId[newOrderId] = restaurantId;
 
-            // 12) Make Items text for CSV
-            // E.g. "Chicken Rice, 2|Beef Burger, 1"
+            // Items text for CSV
             string itemsText = "";
             for (int i = 0; i < selectedOrderedItems.Count; i++)
             {
@@ -510,7 +573,7 @@ namespace Gruberoo
             }
             itemsText = "\"" + itemsText + "\"";
 
-            // 13) Append to orders.csv
+            // Append to orders.csv
             string path = "data/orders.csv";
             string deliveryDateOut = deliveryDateTime.ToString("dd/MM/yyyy");
             string deliveryTimeOut = deliveryDateTime.ToString("HH:mm");
@@ -518,13 +581,10 @@ namespace Gruberoo
             string totalOut = finalTotal.ToString("0.00", CultureInfo.InvariantCulture);
 
             string line = $"{newOrderId},{customerEmail},{restaurantId},{deliveryDateOut},{deliveryTimeOut},{deliveryAddress},{createdOut},{totalOut},{newOrder.OrderStatus},{itemsText}";
-
             using (StreamWriter sw = new StreamWriter(path, true))
-            {
                 sw.WriteLine(line);
-            }
 
-            // 14) Confirmation
+            // Confirmation
             Console.WriteLine();
             Console.WriteLine($"Order {newOrderId} created successfully! Status: {newOrder.OrderStatus}");
         }
@@ -609,19 +669,45 @@ namespace Gruberoo
 
             // 5. Choose modification
             Console.WriteLine();
-            Console.Write("Modify: [1] Items [2] Address [3] Delivery Time: ");
-            string choice = Console.ReadLine().Trim();
+            string choice;
+            while (true)
+            {
+                Console.Write("Modify: [1] Items [2] Address [3] Delivery Time (0 to cancel): ");
+                choice = Console.ReadLine().Trim();
+
+                if (choice == "0") return;
+
+                if (choice == "1" || choice == "2" || choice == "3")
+                    break;
+
+                Console.WriteLine("Invalid option. Please enter 1, 2, 3 or 0.");
+            }
+
 
             double oldTotal = selected.OrderTotal;
 
             // === MODIFY ADDRESS ===
             if (choice == "2")
             {
-                Console.Write("Enter new Address: ");
-                selected.DeliveryAddress = Console.ReadLine();
-                Console.WriteLine();
+                string newAddr;
+                while (true)
+                {
+                    Console.Write("Enter new Address: ");
+                    newAddr = Console.ReadLine() ?? "";
+
+                    if (string.IsNullOrWhiteSpace(newAddr))
+                    {
+                        Console.WriteLine("Address cannot be empty.");
+                        continue;
+                    }
+
+                    break;
+                }
+
+                selected.DeliveryAddress = newAddr;
                 Console.WriteLine($"Order {orderId} updated. New Address applied.");
             }
+
 
             // === MODIFY DELIVERY TIME ===
             else if (choice == "3")
