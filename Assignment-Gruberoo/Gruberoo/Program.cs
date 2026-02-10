@@ -113,6 +113,57 @@ namespace Gruberoo
             }
         }
 
+        static void SaveQueueToCsv()
+        {
+            Directory.CreateDirectory("data");
+            string path = Path.Combine("data", "queue.csv");
+
+            using (StreamWriter sw = new StreamWriter(path, false))
+            {
+                sw.WriteLine("RestaurantId,OrderId,DeliveryDateTime,Status");
+
+                List<Restaurant> sorted = new List<Restaurant>(restaurantsById.Values);
+                sorted.Sort((a, b) => string.Compare(a.RestaurantId, b.RestaurantId, StringComparison.Ordinal));
+
+                foreach (Restaurant r in sorted)
+                {
+                    foreach (Order o in r.OrderQueue)
+                    {
+                        sw.WriteLine($"{r.RestaurantId},{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus}");
+                    }
+                }
+            }
+
+            Console.WriteLine("Saved queue to: " + Path.GetFullPath(path));
+        }
+
+        static void SaveStackToCsv()
+        {
+            Directory.CreateDirectory("data");
+            string path = Path.Combine("data", "stack.csv");
+
+            using (StreamWriter sw = new StreamWriter(path, false))
+            {
+                sw.WriteLine("OrderId,DeliveryDateTime,Status,RefundAmount");
+
+                Stack<Order> temp = new Stack<Order>();
+
+                while (refundStack.Count > 0)
+                {
+                    Order o = refundStack.Pop();
+                    sw.WriteLine($"{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus},{o.OrderTotal:0.00}");
+                    temp.Push(o);
+                }
+
+                while (temp.Count > 0)
+                {
+                    refundStack.Push(temp.Pop());
+                }
+            }
+
+            Console.WriteLine("Saved stack to: " + Path.GetFullPath(path));
+        }
+
 
 
         // Student 1: Hayder Zikry S10272315B
@@ -609,57 +660,6 @@ namespace Gruberoo
             // Confirmation
             Console.WriteLine();
             Console.WriteLine($"Order {newOrderId} created successfully! Status: {newOrder.OrderStatus}");
-        }
-
-        static void SaveQueueToCsv()
-        {
-            Directory.CreateDirectory("data");
-            string path = Path.Combine("data", "queue.csv");
-
-            using (StreamWriter sw = new StreamWriter(path, false))
-            {
-                sw.WriteLine("RestaurantId,OrderId,DeliveryDateTime,Status");
-
-                List<Restaurant> sorted = new List<Restaurant>(restaurantsById.Values);
-                sorted.Sort((a, b) => string.Compare(a.RestaurantId, b.RestaurantId, StringComparison.Ordinal));
-
-                foreach (Restaurant r in sorted)
-                {
-                    foreach (Order o in r.OrderQueue)
-                    {
-                        sw.WriteLine($"{r.RestaurantId},{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus}");
-                    }
-                }
-            }
-
-            Console.WriteLine("Saved queue to: " + Path.GetFullPath(path));
-        }
-
-        static void SaveStackToCsv()
-        {
-            Directory.CreateDirectory("data");
-            string path = Path.Combine("data", "stack.csv");
-
-            using (StreamWriter sw = new StreamWriter(path, false))
-            {
-                sw.WriteLine("OrderId,DeliveryDateTime,Status,RefundAmount");
-
-                Stack<Order> temp = new Stack<Order>();
-
-                while (refundStack.Count > 0)
-                {
-                    Order o = refundStack.Pop();
-                    sw.WriteLine($"{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus},{o.OrderTotal:0.00}");
-                    temp.Push(o);
-                }
-
-                while (temp.Count > 0)
-                {
-                    refundStack.Push(temp.Pop());
-                }
-            }
-
-            Console.WriteLine("Saved stack to: " + Path.GetFullPath(path));
         }
 
         static void ModifyOrder()
