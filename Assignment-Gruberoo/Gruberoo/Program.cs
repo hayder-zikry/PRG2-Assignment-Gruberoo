@@ -69,6 +69,8 @@ namespace Gruberoo
 
                 if (option == 0)
                 {
+                    SaveQueueToCsv();
+                    SaveStackToCsv();
                     Console.WriteLine("Goodbye!");
                     break;
                 }
@@ -604,20 +606,60 @@ namespace Gruberoo
             }
             itemsText = "\"" + itemsText + "\"";
 
-            // append the new order to the orders.csv
-            string path = "data/orders.csv";
-            string deliveryDateOut = deliveryDateTime.ToString("dd/MM/yyyy");
-            string deliveryTimeOut = deliveryDateTime.ToString("HH:mm");
-            string createdOut = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-            string totalOut = finalTotal.ToString("0.00", CultureInfo.InvariantCulture);
-
-            string line = $"{newOrderId},{customerEmail},{restaurantId},{deliveryDateOut},{deliveryTimeOut},{deliveryAddress},{createdOut},{totalOut},{newOrder.OrderStatus},{itemsText}";
-            using (StreamWriter sw = new StreamWriter(path, true))
-                sw.WriteLine(line);
-
             // Confirmation
             Console.WriteLine();
             Console.WriteLine($"Order {newOrderId} created successfully! Status: {newOrder.OrderStatus}");
+        }
+
+        static void SaveQueueToCsv()
+        {
+            Directory.CreateDirectory("data");
+            string path = Path.Combine("data", "queue.csv");
+
+            using (StreamWriter sw = new StreamWriter(path, false))
+            {
+                sw.WriteLine("RestaurantId,OrderId,DeliveryDateTime,Status");
+
+                List<Restaurant> sorted = new List<Restaurant>(restaurantsById.Values);
+                sorted.Sort((a, b) => string.Compare(a.RestaurantId, b.RestaurantId, StringComparison.Ordinal));
+
+                foreach (Restaurant r in sorted)
+                {
+                    foreach (Order o in r.OrderQueue)
+                    {
+                        sw.WriteLine($"{r.RestaurantId},{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus}");
+                    }
+                }
+            }
+
+            Console.WriteLine("Saved queue to: " + Path.GetFullPath(path));
+        }
+
+        static void SaveStackToCsv()
+        {
+            Directory.CreateDirectory("data");
+            string path = Path.Combine("data", "stack.csv");
+
+            using (StreamWriter sw = new StreamWriter(path, false))
+            {
+                sw.WriteLine("OrderId,DeliveryDateTime,Status,RefundAmount");
+
+                Stack<Order> temp = new Stack<Order>();
+
+                while (refundStack.Count > 0)
+                {
+                    Order o = refundStack.Pop();
+                    sw.WriteLine($"{o.OrderId},{o.DeliveryDateTime:dd/MM/yyyy HH:mm},{o.OrderStatus},{o.OrderTotal:0.00}");
+                    temp.Push(o);
+                }
+
+                while (temp.Count > 0)
+                {
+                    refundStack.Push(temp.Pop());
+                }
+            }
+
+            Console.WriteLine("Saved stack to: " + Path.GetFullPath(path));
         }
 
         static void ModifyOrder()
