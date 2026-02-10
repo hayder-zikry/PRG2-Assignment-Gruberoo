@@ -7,18 +7,22 @@ namespace Gruberoo
 {
     internal class Program
     {
+        // lookup tables for quick access
         static Dictionary<string, Customer> customersByEmail = new Dictionary<string, Customer>();
+        static Dictionary<string, Restaurant> restaurantsById = new Dictionary<string, Restaurant>();
+
+        // orders list
         static List<Order> allOrders = new List<Order>();
         
-        static Dictionary<string, Restaurant> restaurantsById = new Dictionary<string, Restaurant>();
-        static int foodItemsLoaded = 0;
-
         static Dictionary<int, List<OrderedFoodItem>> orderItemsById = new Dictionary<int, List<OrderedFoodItem>>();
 
         static Dictionary<int, string> orderCustomerEmail = new Dictionary<int, string>();
         static Dictionary<int, string> orderRestaurantId = new Dictionary<int, string>();
 
+        // tracking refund for cancelled/rejected orders
         static Stack<Order> refundStack = new Stack<Order>();
+
+        static int foodItemsLoaded = 0;
 
         static void Main(string[] args)
         {
@@ -55,6 +59,7 @@ namespace Gruberoo
 
                 string input = (Console.ReadLine() ?? "").Trim();
 
+                // validate user input for main menu
                 if (!int.TryParse(input, out int option))
                 {
                     Console.WriteLine("Invalid option. Please enter a number.");
@@ -178,7 +183,7 @@ namespace Gruberoo
 
                 string itemsText = "";
 
-                // Parts
+                // parse fixed columns first since items in order.csv may have commas
                 int orderId = int.Parse(parts[0].Trim());
                 string customerEmail = parts[1].Trim();
                 string restaurantId = parts[2].Trim();
@@ -189,6 +194,7 @@ namespace Gruberoo
                 double totalAmount = double.Parse(parts[7].Trim());
                 string status = parts[8].Trim();
 
+                // rejoin items columns
                 if (parts.Length >= 10)
                 {
                     itemsText = string.Join(",", parts, 9, parts.Length - 9).Trim();
@@ -200,9 +206,10 @@ namespace Gruberoo
 
                 List<OrderedFoodItem> loadedItems = new List<OrderedFoodItem>();
 
+                // parse items with | (e.g. "Beef Burger, 1|Grilled Steak, 1")
                 if (!string.IsNullOrWhiteSpace(itemsText))
                 {
-                    string[] itemChunks = itemsText.Split('|'); // "Chicken Rice, 2"
+                    string[] itemChunks = itemsText.Split('|');
 
                     foreach (string chunk in itemChunks)
                     {
@@ -214,7 +221,7 @@ namespace Gruberoo
                         int qty;
                         if (!int.TryParse(pair[1].Trim(), out qty)) continue;
 
-                        // Find the item price from the restaurant menu
+                        // find the item price from the restaurant menu
                         double price = 0;
                         string desc = "-";
 
@@ -241,6 +248,7 @@ namespace Gruberoo
                     }
                 }
 
+                // create datetime values
                 DateTime deliveryDateTimeObj = DateTime.ParseExact(deliveryDate + " " + deliveryTime, "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
                 DateTime createdDateTimeObj = DateTime.ParseExact(createdDateTime, "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
@@ -251,21 +259,23 @@ namespace Gruberoo
                 {
                     foreach (OrderedFoodItem ofi in loadedItems)
                     {
-                        order.OrderedFoodItems.Add(ofi); // no extra class attributes needed
+                        order.OrderedFoodItems.Add(ofi);
                     }
                 }
 
                 allOrders.Add(order);
 
+                // save relationships for later lookups
                 orderCustomerEmail[orderId] = customerEmail;
+                orderRestaurantId[orderId] = restaurantId;
 
+                // attach order to customer
                 if (customersByEmail.ContainsKey(customerEmail))
                 {
                     customersByEmail[customerEmail].AddOrder(order);
                 }
 
-                orderRestaurantId[orderId] = restaurantId;
-
+                // add only active orders to restaurant menu
                 if (restaurantsById.ContainsKey(restaurantId))
                 {
                     string statusClean = order.OrderStatus.Trim();
@@ -299,6 +309,7 @@ namespace Gruberoo
 
                 Console.WriteLine($"Restaurant: {r.RestaurantName} ({r.RestaurantId})");
 
+                // print all menu items for each restaurant
                 foreach (Menu m in r.Menus)
                 {
                     foreach (FoodItem fi in m.FoodItems)
@@ -319,7 +330,7 @@ namespace Gruberoo
             Console.WriteLine("Create New Order");
             Console.WriteLine("================");
 
-            // Customer Email
+            // get valid customer email
             string customerEmail;
             while (true)
             {
@@ -336,7 +347,7 @@ namespace Gruberoo
                 break;
             }
 
-            // Restaurant ID
+            // get valid restaurant id
             string restaurantId;
             while (true)
             {
@@ -353,7 +364,7 @@ namespace Gruberoo
                 break;
             }
 
-            // Delivery Date
+            // get valid delivery date
             DateTime deliveryDate;
             while (true)
             {
@@ -371,7 +382,7 @@ namespace Gruberoo
                 break;
             }
 
-            // Delivery Time
+            // get valid delivery time
             DateTime deliveryTime;
             while (true)
             {
@@ -394,7 +405,7 @@ namespace Gruberoo
                 deliveryTime.Hour, deliveryTime.Minute, 0
             );
 
-            // Address
+            // get an address while not allowing null
             string deliveryAddress;
             while (true)
             {
@@ -411,18 +422,18 @@ namespace Gruberoo
                 break;
             }
 
-            // New Order ID (max + 1)
+            // generate next order id
             int maxId = 0;
             foreach (Order o in allOrders)
                 if (o.OrderId > maxId) maxId = o.OrderId;
 
             int newOrderId = maxId + 1;
 
-            // Create order
+            // create order
             Order newOrder = new Order(newOrderId, deliveryDateTime, deliveryAddress);
             newOrder.OrderStatus = Order.STATUS_PENDING;
 
-            // Menu items
+            // display list of food items for the selected restaurant for customer convenience
             Restaurant r = restaurantsById[restaurantId];
             List<FoodItem> availableItems = new List<FoodItem>();
             foreach (Menu m in r.Menus)
@@ -440,6 +451,7 @@ namespace Gruberoo
             for (int i = 0; i < availableItems.Count; i++)
                 Console.WriteLine($"{i + 1}. {availableItems[i].ItemName} - ${availableItems[i].ItemPrice:0.00}");
 
+            // collect ordered items
             List<OrderedFoodItem> selectedOrderedItems = new List<OrderedFoodItem>();
 
             while (true)
@@ -471,6 +483,7 @@ namespace Gruberoo
                     continue;
                 }
 
+                // get valid quantity
                 int qty;
                 while (true)
                 {
@@ -500,7 +513,7 @@ namespace Gruberoo
                 return;
             }
 
-            // Special request
+            // special request option
             while (true)
             {
                 Console.Write("Add special request? [Y/N]: ");
@@ -522,7 +535,7 @@ namespace Gruberoo
                 break;
             }
 
-            // Calculate total
+            // calculate total and show order summary and total
             double finalTotal = newOrder.CalculateOrderTotal();
             const double DELIVERY_FEE = 5.00;
             double itemsTotal = Math.Round(finalTotal - DELIVERY_FEE, 2);
@@ -532,7 +545,7 @@ namespace Gruberoo
             newOrder.DisplayOrderedFoodItems();
             Console.WriteLine($"Order Total: ${itemsTotal:0.00} + ${DELIVERY_FEE:0.00} (delivery) = ${finalTotal:0.00}");
 
-            // Payment
+            // payment confirmation
             while (true)
             {
                 Console.Write("Proceed to payment? [Y/N]: ");
@@ -547,6 +560,7 @@ namespace Gruberoo
                 break;
             }
 
+            // get a valid payment method (CC/PP/CD)
             string method;
             while (true)
             {
@@ -567,7 +581,7 @@ namespace Gruberoo
             newOrder.OrderPaid = true;
             newOrder.OrderStatus = Order.STATUS_PENDING;
 
-            // Add to collections
+            // add order to collections
             allOrders.Add(newOrder);
             customersByEmail[customerEmail].AddOrder(newOrder);
             restaurantsById[restaurantId].OrderQueue.Enqueue(newOrder);
@@ -575,7 +589,7 @@ namespace Gruberoo
             orderCustomerEmail[newOrderId] = customerEmail;
             orderRestaurantId[newOrderId] = restaurantId;
 
-            // Items text for CSV
+            // create items string for CSV output
             string itemsText = "";
             for (int i = 0; i < selectedOrderedItems.Count; i++)
             {
@@ -585,7 +599,7 @@ namespace Gruberoo
             }
             itemsText = "\"" + itemsText + "\"";
 
-            // Append to orders.csv
+            // append the new order to the orders.csv
             string path = "data/orders.csv";
             string deliveryDateOut = deliveryDateTime.ToString("dd/MM/yyyy");
             string deliveryTimeOut = deliveryDateTime.ToString("HH:mm");
@@ -610,7 +624,7 @@ namespace Gruberoo
             Console.WriteLine("Modify Order");
             Console.WriteLine("============");
 
-            // 1. Customer Email
+            // validate customer email
             Console.Write("Enter Customer Email: ");
             string email = Console.ReadLine().Trim();
 
@@ -620,9 +634,8 @@ namespace Gruberoo
                 return;
             }
 
-            // 2. Get pending orders for this customer
+            // get pending orders from customer
             List<Order> pendingOrders = new List<Order>();
-
             foreach (Order o in allOrders)
             {
                 if (orderCustomerEmail.ContainsKey(o.OrderId) &&
@@ -645,7 +658,7 @@ namespace Gruberoo
                 Console.WriteLine(o.OrderId);
             }
 
-            // 3. Select Order ID
+            // validate order id selection
             Console.Write("Enter Order ID: ");
             if (!int.TryParse(Console.ReadLine(), out int orderId))
             {
@@ -669,7 +682,7 @@ namespace Gruberoo
                 return;
             }
 
-            // 4. Display order details
+            // display order details
             Console.WriteLine("Order Items:");
             selected.DisplayOrderedFoodItems();
 
@@ -679,7 +692,7 @@ namespace Gruberoo
             Console.WriteLine("Delivery Date/Time:");
             Console.WriteLine(selected.DeliveryDateTime.ToString("dd/MM/yyyy, HH:mm"));
 
-            // 5. Choose modification
+            // validate modification choice
             Console.WriteLine();
             string choice;
             while (true)
@@ -698,7 +711,7 @@ namespace Gruberoo
 
             double oldTotal = selected.OrderTotal;
 
-            // === MODIFY ADDRESS ===
+            // update delivery address
             if (choice == "2")
             {
                 string newAddr;
@@ -721,7 +734,7 @@ namespace Gruberoo
             }
 
 
-            // === MODIFY DELIVERY TIME ===
+            // update delivery time
             else if (choice == "3")
             {
                 Console.Write("Enter new Delivery Time (hh:mm): ");
@@ -744,7 +757,7 @@ namespace Gruberoo
                 Console.WriteLine($"Order {orderId} updated. New Delivery Time: {timeText}");
             }
 
-            // === MODIFY ITEMS ===
+            // update ordered items
             else if (choice == "1")
             {
                 // get restaurantId for this order
@@ -763,7 +776,7 @@ namespace Gruberoo
 
                 Restaurant rr = restaurantsById[rid];
 
-                // Build menu list
+                // display food item list for the restaurant
                 List<FoodItem> availableItems = new List<FoodItem>();
                 foreach (Menu m in rr.Menus)
                 {
@@ -786,9 +799,10 @@ namespace Gruberoo
                     Console.WriteLine($"{i + 1}. {availableItems[i].ItemName} - ${availableItems[i].ItemPrice:0.00}");
                 }
 
-                // Clear existing items in both places
+                // clear previous items from list
                 selected.OrderedFoodItems.Clear();
 
+                // add new items to list
                 while (true)
                 {
                     Console.Write("Enter item number (0 to finish): ");
@@ -835,7 +849,7 @@ namespace Gruberoo
             }
 
 
-            // 6. Recalculate and check payment
+            // recalculate the total and request for payment if total increased from previous total
             double newTotal = selected.CalculateOrderTotal();
 
             if (newTotal > oldTotal)
@@ -849,6 +863,7 @@ namespace Gruberoo
                 selected.OrderPaid = true;
             }
 
+            // display full updated order details after modifying
             Console.WriteLine();
             Console.WriteLine("Updated Order Details:");
             Console.WriteLine("Order Items:");
@@ -869,7 +884,7 @@ namespace Gruberoo
             Console.WriteLine("Bulk Processing - Pending Orders (Chosen Day)");
             Console.WriteLine("=============================================");
 
-            // Ask for date
+            // ask for the target date for bulk processing
             DateTime targetDate;
             while (true)
             {
@@ -889,7 +904,7 @@ namespace Gruberoo
 
             int totalPendingInQueues = 0;
 
-            // Count pending orders in queues for that day
+            // count the no. of pending orders in queues for that day
             foreach (Restaurant r in restaurantsById.Values)
             {
                 foreach (Order o in r.OrderQueue)
@@ -932,6 +947,7 @@ namespace Gruberoo
                     {
                         processedCount++;
 
+                        // reject if delivery time is within 1hr from now
                         double minsToDelivery = (o.DeliveryDateTime - now).TotalMinutes;
 
                         if (minsToDelivery < 60)
@@ -945,8 +961,6 @@ namespace Gruberoo
                         {
                             o.OrderStatus = Order.STATUS_PREPARING;
                             preparingCount++;
-
-                            // keep active orders in queue
                             r.OrderQueue.Enqueue(o);
                         }
                     }
@@ -957,7 +971,7 @@ namespace Gruberoo
                 }
             }
 
-            // Percentage automatically processed against all orders
+            // calculate percentage of orders auto-processed against all orders
             double percentage = 0;
             if (allOrders.Count > 0)
                 percentage = (processedCount * 100.0) / allOrders.Count;
